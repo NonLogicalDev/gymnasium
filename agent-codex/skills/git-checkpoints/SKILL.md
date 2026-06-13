@@ -21,7 +21,7 @@ Leaving dirty changes "untouched" in the current checkout is not enough. The wor
 
 This rule takes priority over generic worktree-isolation habits: preserve the current dirty state first, then isolate follow-up work if useful.
 
-Forbidden response: do not answer "I will keep this checkout untouched and use a worktree" when meaningful changes are uncommitted. That skips the checkpoint and violates this skill.
+Required decision boundary: when meaningful changes are uncommitted, the next plan must include a checkpoint before any alternate preservation or isolation strategy. Stash, worktree, branch switch, pull, merge, or rebase may follow; they cannot be the first preservation step.
 
 Checkpoint after each logically important goal:
 
@@ -43,7 +43,7 @@ Do not assume local aliases such as `git checkpoint` or `git save` exist.
 Use the alias-equivalent command directly:
 
 ```bash
-checkpoint_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+checkpoint_ts="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 git add -A
 git commit -m "$checkpoint_ts :: checkpoint"
 ```
@@ -51,7 +51,7 @@ git commit -m "$checkpoint_ts :: checkpoint"
 Add a short suffix when it helps the chronological story:
 
 ```bash
-checkpoint_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+checkpoint_ts="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 git add -A
 git commit -m "$checkpoint_ts :: checkpoint :: tests pass for parser edge cases"
 ```
@@ -81,7 +81,7 @@ When a test passes and the user asks to inspect another branch, checkpoint first
 ```bash
 git status --short
 git diff --stat
-checkpoint_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+checkpoint_ts="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 git add -A
 git commit -m "$checkpoint_ts :: checkpoint :: parser regression test passes"
 ```
@@ -94,7 +94,7 @@ Before switching branches, pulling, rebasing, creating a worktree to inspect ano
 
 ```bash
 git status --short
-checkpoint_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+checkpoint_ts="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 git add -A
 git commit -m "$checkpoint_ts :: checkpoint :: before switching branches"
 ```
@@ -136,3 +136,9 @@ Checkpoint at boundaries, not every keystroke:
 - Never switch branches before preserving or explicitly resolving local changes.
 - If committing is blocked by hooks or policy, report the failure and current `git status --short`.
 - If the repository is not using git, do not invent an equivalent unless repo instructions define one.
+
+## Tests
+
+When changing this skill,
+read [tests/README.md](tests/README.md).
+Run the relevant scenarios with fresh subagents that have empty context windows.
