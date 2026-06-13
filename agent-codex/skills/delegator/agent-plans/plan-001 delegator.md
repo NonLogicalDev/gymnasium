@@ -46,7 +46,8 @@ The user wants the main thread's context protected. The skill should push resear
 - [x] 2026-06-12 23:41 - Ran `quick_validate.py`; the skill is mechanically valid.
 - [x] 2026-06-12 23:42 - Completed two fresh pressure tests against the new skill.
 - [x] 2026-06-12 23:42 - Updated the plan with baseline and pressure-test evidence.
+- [x] 2026-06-12 23:42 - Checkpointed the completed delegator skill: `29b3f86`.
 
 # Unfinished Work
 
-- [ ] Checkpoint the repo.
+None.
