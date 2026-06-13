@@ -28,13 +28,26 @@ Always produce:
 ```text
 <imperative subject>
 
-<body with semantic line breaks>
+<what changed>
+
+## Context
+
+<why this change exists>
+
+## Validation
+
+<focused evidence, when available>
 ```
 
 The body is mandatory. If the user says "commit message only,"
 return only the commit message text, but still include both subject and body.
 Do not collapse the message to a one-line subject unless the user explicitly
 asks for a subject line only.
+
+After the subject, start with the what: the behavior, contract, or user-visible
+outcome changed by the commit. Then use `## Context` for the reason this
+change exists. Use `## Validation` only when useful validation evidence is
+available; do not invent validation to fill the section.
 
 The subject:
 
@@ -72,7 +85,9 @@ Replace them with reviewer-value statements:
 - What focused test proves the behavior?
 - What public command, flag, field, or error changed?
 
-Do not force headings or labels into simple messages. Use short paragraphs by default.
+Use `## Context` and `## Validation` headings for the standard public-facing
+message shape. Do not add extra headings unless the commit changes multiple
+public interfaces that need separate scan points.
 Do not use bullet lists unless the commit changes multiple public
 interfaces that reviewers must audit by name. Never use bullets for
 files, helpers, fixtures, lint, formatting, or generic test inventory.
@@ -98,7 +113,8 @@ Use test output, issue context, user notes, and changed public interfaces when a
 
 ## Body Rules
 
-- Lead with the operational or product context, not file names.
+- Lead with what changed, not file names.
+- Put the operational or product context under `## Context`.
 - Explain behavior and contracts, not a file-by-file inventory.
 - Include implementation details only when they clarify a boundary, compatibility concern, migration, or surprising design choice.
 - Mention exact public names for changed CLI flags, config keys, API fields, file formats, commands, or visible errors.
@@ -147,13 +163,17 @@ Prefer concrete verbs and nouns from the domain.
 ```text
 Reject duplicate CSV import headers
 
+Header validation now trims whitespace before checking duplicates
+and rejects ambiguous imports before mapping starts. Quoted comma
+parsing keeps the existing fixture behavior.
+
+## Context
+
 Customer imports could silently map a later duplicate column over
 the first matching header, which made the imported field depend on
 column order instead of the file's visible labels.
 
-Header validation now trims whitespace before checking duplicates
-and rejects ambiguous imports before mapping starts. Quoted comma
-parsing keeps the existing fixture behavior.
+## Validation
 
 Focused parser coverage exercises duplicate headers, whitespace
 normalization, and the quoted comma compatibility case.
@@ -166,10 +186,9 @@ Before returning the message:
 - [ ] Subject is imperative.
 - [ ] Body is not empty.
 - [ ] "Commit message only" was not misread as "subject only."
-- [ ] Context TL;DR is present.
-- [ ] What changed is clear.
-- [ ] Why it changed is clear.
-- [ ] Validation is included when useful and not invented.
+- [ ] First body paragraph says what changed.
+- [ ] `## Context` explains why it changed.
+- [ ] `## Validation` is included when useful and not invented.
 - [ ] No AI-sounding filler or diff inventory remains.
 - [ ] No routine lint/format/check transcript remains.
 - [ ] No bullet-list inventory remains.

@@ -36,6 +36,7 @@ The skill should help agents write messages that respect reviewer time and avoid
 - Fourth pressure test returned a good subject/body but still laundered helper and fixture inventory into the body. The skill needs to require behavior-level validation language, not support-artifact language.
 - Fifth pressure test regressed into a bullet-list inventory. The skill needs a high-priority conflict rule and a bullet-list ban for routine process details.
 - Sixth pressure test still mentioned parser handling, helper utilities, fixtures, and lint. The rule needs an explicit pre-return scan for routine-inventory words.
+- Follow-up format decision: public commit messages should first state what changed, then use `## Context` and `## Validation` headings.
 
 # Work Log
 
@@ -55,6 +56,8 @@ The skill should help agents write messages that respect reviewer time and avoid
 - [x] 2026-06-12 22:56 - Captured sixth pressure-test failure: routine inventory persisted in prose.
 - [x] 2026-06-12 22:56 - Added hard rules and a pre-return scan for routine-inventory words.
 - [x] 2026-06-12 22:57 - Final pressure test passed with a subject/body message and no routine inventory.
+- [x] 2026-06-12 23:01 - Updated the message shape to put what changed first, followed by `## Context` and `## Validation`.
+- [x] 2026-06-12 23:01 - Verified the revised shape with a fresh behavior check for the `git-committer` skill commit.
 
 # Unfinished Work
 

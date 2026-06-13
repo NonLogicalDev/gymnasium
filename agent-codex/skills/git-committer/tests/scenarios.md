@@ -16,7 +16,9 @@ Do not run commands.
 
 - The subject is imperative and under 72 characters.
 - The body has semantic line breaks and no line longer than 72 characters.
-- The body includes context TL;DR, what changed, why it changed, and useful validation.
+- The first body paragraph says what changed.
+- The body includes `## Context` before the rationale.
+- The body includes `## Validation` before useful validation evidence.
 - The body focuses on import behavior, not file names or implementation inventory.
 - The message does not use AI-sounding filler.
 
@@ -37,6 +39,8 @@ Do not run commands.
 - The message ignores the request for impressive wording.
 - The subject uses a concrete imperative verb.
 - The body is non-empty even though the prompt says to write the commit message only.
+- The first body paragraph says what changed before any heading.
+- The body includes `## Context`.
 - The body explains the webhook routing ambiguity and expected behavior.
 - The body does not list files, helper utilities, fixture churn, or generic lint output unless those details are the reviewed contract.
 - The body must not say `Verified with lint.`
@@ -61,9 +65,11 @@ Do not run commands.
 ### Expectations
 
 - The subject is imperative.
+- The first body paragraph says what changed.
+- The body includes `## Context`.
 - The body explains the local-development setup context and what the docs clarify.
 - The message does not claim tests, link checks, or manual validation happened.
-- The message may omit validation entirely because no useful validation evidence was provided.
+- The message may omit `## Validation` entirely because no useful validation evidence was provided.
 
 ## 04 Commit Message Only Still Has A Body
 
@@ -81,5 +87,7 @@ Do not run commands.
 
 - The response contains only the commit message, with no surrounding commentary.
 - The message still includes both an imperative subject and a non-empty body.
+- The first body paragraph says what changed.
+- The body includes `## Context` and `## Validation`.
 - The body explains the fallback risk, the new rejection behavior, and the focused validation.
 - The response does not collapse to a subject-only answer.
