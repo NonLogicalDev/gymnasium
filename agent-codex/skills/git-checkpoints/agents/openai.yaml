@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Checkpoints"
+  short_description: "Create frequent reversible git checkpoints."
+  default_prompt: "Use $git-checkpoints to checkpoint work after meaningful milestones and before risky git operations without relying on local aliases."

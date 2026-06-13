@@ -1,0 +1,4 @@
+interface:
+  display_name: "BuildWithPlans"
+  short_description: "Maintain numbered agent plans while building."
+  default_prompt: "Use $BuildWithPlans to create or update agent-plans before medium work, maintain decisions/learnings and timestamped work logs, and checkpoint often."
