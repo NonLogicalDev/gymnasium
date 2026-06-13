@@ -17,4 +17,5 @@ agent-codex/
 
 - `agent-codex/skills/build-with-plans/` - local copy of the Build With Plans skill.
 - `agent-codex/skills/git-checkpoints/` - skill for creating frequent reversible git checkpoint commits.
+- `agent-codex/skills/writing-and-updating-skills/` - imported from `abhinav/home`; guidance for authoring and pressure-testing skills.
 - `agent-codex/plugins/` - placeholder for future Codex plugins.
