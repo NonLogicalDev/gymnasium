@@ -43,16 +43,20 @@ Do not assume local aliases such as `git checkpoint` or `git save` exist.
 Use the alias-equivalent command directly:
 
 ```bash
+checkpoint_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 git add -A
-git commit -m "$(date) :: checkpoint"
+git commit -m "$checkpoint_ts :: checkpoint"
 ```
 
 Add a short suffix when it helps the chronological story:
 
 ```bash
+checkpoint_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 git add -A
-git commit -m "$(date) :: checkpoint :: tests pass for parser edge cases"
+git commit -m "$checkpoint_ts :: checkpoint :: tests pass for parser edge cases"
 ```
+
+Use UTC ISO-style timestamps so checkpoint messages sort predictably and do not depend on local `date` formatting.
 
 Keep suffixes factual and short. Do not write polished release-style messages for checkpoint commits.
 
@@ -77,8 +81,9 @@ When a test passes and the user asks to inspect another branch, checkpoint first
 ```bash
 git status --short
 git diff --stat
+checkpoint_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 git add -A
-git commit -m "$(date) :: checkpoint :: parser regression test passes"
+git commit -m "$checkpoint_ts :: checkpoint :: parser regression test passes"
 ```
 
 Then switch branches or create a worktree if that is still the right approach. Do not create the worktree first.
@@ -89,8 +94,9 @@ Before switching branches, pulling, rebasing, creating a worktree to inspect ano
 
 ```bash
 git status --short
+checkpoint_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 git add -A
-git commit -m "$(date) :: checkpoint :: before switching branches"
+git commit -m "$checkpoint_ts :: checkpoint :: before switching branches"
 ```
 
 Checkpoint commits are easier to inspect, recover, and merge later than anonymous stashes. Use `git stash` only when repo instructions require it or the human asks.
@@ -112,7 +118,7 @@ Checkpoint at boundaries, not every keystroke:
 
 | Mistake | Correction |
 |---------|------------|
-| Relying on `git checkpoint` alias | Use `git add -A` plus `git commit -m "$(date) :: checkpoint..."` unless the repo defines an alias. |
+| Relying on `git checkpoint` alias | Use `git add -A` plus `git commit -m "$checkpoint_ts :: checkpoint..."` unless the repo defines an alias. |
 | Waiting until the final answer | Checkpoint after each meaningful milestone. |
 | Using `git stash` by habit | Prefer a checkpoint commit before branch/context switches. |
 | Creating a worktree to avoid dirty-state handling | Checkpoint meaningful current changes first; then create the worktree if still useful. |
