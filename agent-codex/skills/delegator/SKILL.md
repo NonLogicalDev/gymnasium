@@ -1,22 +1,55 @@
 ---
 name: delegator
-description: Use when work has multiple independent tracks, broad repo exploration, audits, research, validation, implementation slices, large logs, or any task likely to consume main-thread context; use when the main thread should coordinate with subagents, preserve project context, avoid blocking, or batch parallel work.
+description: Use by default for meaningful agent work, including reads, writes, repo exploration, audits, research, validation, implementation slices, large logs, or tasks likely to consume main-thread context; use when the main thread should manage subagents, preserve project context, avoid blocking, or batch parallel work.
 ---
 
 # Delegator
 
 ## Overview
 
-Keep the main thread lightweight. Its context is reserved for coordination, project memory, user communication, integration decisions, and checkpoints. Push bulk work to focused subagents whenever independent work can proceed without blocking the next local step.
+Keep the main thread lightweight. Its context is reserved for coordination, project memory, user communication, integration decisions, and checkpoints. Delegate meaningful work by default, then integrate the results deliberately.
 
 ## Core Rule
 
-Before reading deeply or starting broad work, split the task:
+The main thread is the manager, not the default worker. It should not personally perform meaningful reads, searches, edits, audits, or validation when a focused subagent can do that work.
+
+Before starting work, split the task:
 
 1. Identify the immediate critical-path action the main thread should do locally.
-2. Identify independent sidecar tasks that can run without that result.
-3. If there are two or more sidecars, dispatch them in one batch.
-4. While they run, continue meaningful non-overlapping work locally.
+2. Identify meaningful work that should be delegated.
+3. If there is one meaningful work item, dispatch one focused subagent.
+4. If there are two or more independent work items, dispatch them in one batch.
+5. Keep only coordination, integration, approvals, and narrow context tracking local.
+
+Parallelization decides how many subagents to spawn, not whether to delegate.
+
+## Manager Mode
+
+Use one subagent for meaningful non-parallel work:
+
+- Reading one important file and summarizing it.
+- Editing one bounded section.
+- Running one focused validation command.
+- Inspecting one failure or log.
+
+Use multiple subagents when work can split cleanly.
+Do not manufacture parallelism for its own sake,
+but do delegate the worker action.
+
+Avoid micromanaging:
+
+- Give the worker a clear outcome, scope, constraints, and return format.
+- Let the worker choose tactical reads or edits inside that scope.
+- Ask for changed paths, important evidence, validation, and blockers.
+- Do not follow every worker step in the main thread unless risk or ambiguity requires it.
+
+## Batch Rule
+
+When batching is available:
+
+1. Identify independent sidecar tasks that can run without the immediate local result.
+2. If there are two or more sidecars, dispatch them in one batch.
+3. Keep one local coordination task moving while they run.
 
 Do not make the main thread the default bulk worker. Use subagents liberally for exploration, audits, comparisons, test investigation, validation, and disjoint implementation slices.
 
@@ -82,7 +115,7 @@ After dispatching, the main thread should work on non-overlapping critical-path 
 - Create or update the plan.
 - Read repo-local instructions.
 - Prepare the integration checklist.
-- Make safe edits that do not overlap delegated scopes.
+- Apply narrow integration edits after reviewing worker output.
 - Handle approvals or user updates.
 
 Wait only when the next action truly depends on an agent result. Do not redo delegated work in the main thread.
@@ -115,19 +148,22 @@ Subagent reports are evidence, not proof. The main thread still owns the final r
 
 Keep the work local when:
 
-- The task is tiny and can be completed with one or two quick commands.
-- The next step is an immediate blocker and delegation would leave the main thread idle.
+- The task is trivial bookkeeping or a one-command coordination check.
+- The next step is coordinator-only context tracking or integration review.
+- The next step is an immediate blocker and delegating it would leave the main thread idle with no useful coordination work.
 - The work requires sensitive secrets, approvals, or destructive operations.
 - Shared state is so tight that separate agents would conflict.
 - The user explicitly forbids subagents.
 
-Even then, keep the main thread narrow. If the local task grows, split it and delegate the new independent parts.
+Even then, keep the main thread narrow. If a local task becomes meaningful worker work, delegate it.
 
 ## Red Flags
 
 | Red flag | Correct action |
 | --- | --- |
 | "I'll just inspect everything here first." | Dispatch explorers before deep reads. |
+| "This is not parallelizable, so I'll do it locally." | Dispatch one focused subagent for meaningful work. |
+| "It is only one file, so the main thread can edit it." | Delegate meaningful edits; keep review and integration local. |
 | "Coordinating agents is overhead." | Use one small batch with bounded prompts. |
 | "I'll wait for the first agent before deciding." | Batch obvious independent tracks now. |
 | "I'll wait while agents work." | Continue non-overlapping coordination or safe local work. |

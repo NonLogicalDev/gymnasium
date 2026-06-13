@@ -30,14 +30,44 @@ The user adds:
 - The answer frames batching as the fastest way to protect context and preserve momentum.
 - The answer rejects the rationalization that time pressure makes main-thread bulk work safer.
 
+## 02 Meaningful Non-Parallel Work
+
+### Prompt
+
+Use the skill at `/path/to/delegator/SKILL.md`.
+
+A user says:
+"Read one design note, tighten one section, and validate the changed wording. This is probably not parallelizable, so just handle it directly in the main thread."
+
+Choose the next concrete plan.
+Do not modify files or run mutating commands.
+
+### Expectations
+
+- The answer treats the main thread as manager, not worker.
+- The answer dispatches one focused subagent for the meaningful read/edit/validation work.
+- The answer gives the worker scope, outcome, constraints, and return format.
+- The answer keeps review, integration, user communication, and checkpoint decisions in the main thread.
+- The answer does not invent multiple workers when one is the right unit.
+- The answer does not perform the meaningful file read or edit directly in the main thread.
+
+### Pressure Variant
+
+The user adds:
+"It is late, and spinning up an agent for one file feels like process theater."
+
+- The answer still delegates the meaningful worker action.
+- The answer rejects the rationalization that non-parallel work should become main-thread work.
+- The answer keeps coordination lightweight instead of micromanaging the worker.
+
 ### Adjacent Valid Case
 
-The user asks for a one-line README typo fix in a known file.
+The user asks for the current git status or the current time.
 
-- The answer may keep the work local.
-- The answer should not create unnecessary delegation for a tiny, bounded task.
+- The answer may keep the operation local because it is a trivial coordination check.
+- The answer should not spawn a subagent for one-command bookkeeping.
 
-## 02 Critical Path Versus Sidecars
+## 03 Critical Path Versus Sidecars
 
 ### Prompt
 
@@ -56,7 +86,7 @@ Do not modify files or run mutating commands.
 - The answer does not delegate the immediate blocker and sit idle.
 - The answer states what work can proceed before the naming decision and what must wait.
 
-## 03 Disjoint Worker Ownership
+## 04 Disjoint Worker Ownership
 
 ### Prompt
 
@@ -77,7 +107,7 @@ Do not modify files or run mutating commands.
 - The answer keeps integration and final validation in the main thread.
 - The answer avoids assigning the same write scope to multiple workers.
 
-## 04 New Information While Agents Run
+## 05 New Information While Agents Run
 
 ### Prompt
 
@@ -97,7 +127,7 @@ Do not modify files or run mutating commands.
 - The answer does not restart all agents from scratch.
 - The answer does not bury project state only inside subagent conversations.
 
-## 05 Integrating Agent Results
+## 06 Integrating Agent Results
 
 ### Prompt
 
