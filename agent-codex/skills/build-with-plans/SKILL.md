@@ -7,7 +7,9 @@ description: Maintain numbered agent-plans while building. Use when the user inv
 
 Use this skill to keep implementation work durable across sessions. It turns medium-sized design or functionality changes into numbered plan files that capture decisions, learnings, work logs, and unfinished work while the code evolves.
 
-The user-facing invocation is `$BuildWithPlans`. The validated skill name is `build-with-plans`.
+The user-facing invocation is `$BuildWithPlans`.
+The validated skill name is `build-with-plans`,
+and metadata prompts should refer to it as `$build-with-plans`.
 
 ## Core Rules
 
@@ -133,3 +135,9 @@ A plan update is complete when:
 - Work Log uses checkbox bullets with `YYYY-MM-DD HH:MM` timestamps.
 - Unfinished Work reflects what remains.
 - Any requested checkpoint behavior has followed repo rules.
+
+## Tests
+
+When changing this skill,
+read [tests/README.md](tests/README.md).
+Run the relevant scenarios with fresh subagents that have empty context windows.
