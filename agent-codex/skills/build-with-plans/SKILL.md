@@ -14,7 +14,7 @@ and metadata prompts should refer to it as `$build-with-plans`.
 ## Core Rules
 
 - Read the repo-local `AGENTS.md` before creating or editing plans. Repo instructions override this skill when they are more specific.
-- Use `agent-plans/` under the project root unless the repo explicitly uses another location.
+- Put plans at the smallest durable operating unit unless the repo explicitly uses another location.
 - Create or update a plan for every medium-sized design or functionality change.
 - Do not create a new plan for tiny one-off edits unless the user asks.
 - When a follow-up request belongs to the current active plan, update that existing plan instead of creating a new one.
@@ -22,9 +22,23 @@ and metadata prompts should refer to it as `$build-with-plans`.
 - Keep plans concise but operational: future sessions should understand what was decided, what changed, and what remains.
 - Checkpoint often in git according to repo rules, especially before risky edits, after verified milestones, before switching context, and before ending a session with meaningful changes.
 
+## Plan Location
+
+Choose the planning location by ownership boundary:
+
+- Skill work: use `agent-plans/` under that skill directory.
+  Example: `agent-codex/skills/git-committer/agent-plans/`.
+- Plugin work: use `agent-plans/` under that plugin directory.
+- App, package, or service work: use `agent-plans/` under that unit directory.
+- Cross-cutting repo work: use a task directory under root `agent-plans/`.
+  Example: `agent-plans/2026-06-12-settings-import/plan-001 import-flow.md`.
+- If an existing active plan clearly owns the follow-up, update it even if another valid location exists.
+
+Use the project root `agent-plans/` only when no smaller durable unit owns the work or when repo-local instructions require it.
+
 ## Plan Naming
 
-Use the next numeric plan id already present in `agent-plans/`:
+Use the next numeric plan id already present in the selected plan directory:
 
 ```text
 agent-plans/plan-NNN short-subject.md
@@ -79,7 +93,8 @@ Use `Unfinished Work` when any work remains. Keep it short and actionable, and r
 
 1. Inspect repo guidance and existing plans.
    - Read repo-local `AGENTS.md`.
-   - List `agent-plans/`.
+   - Identify the smallest durable operating unit for the work.
+   - List existing plans in that unit's `agent-plans/` directory, or in the cross-cutting root task directory when the work spans units.
    - Identify whether to update the active plan or create the next numbered plan.
 
 2. Create or update the plan before meaningful edits.

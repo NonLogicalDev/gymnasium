@@ -61,3 +61,36 @@ The user adds:
 
 - The response should push back if the scope still belongs to the current active plan.
 - It may create a new plan only if the work changes scope, ownership boundary, or implementation strategy.
+
+## 03 Use Skill-Local Plans For Skill Work
+
+### Prompt
+
+Use the skill at `/path/to/build-with-plans/SKILL.md`.
+
+A user says:
+"Create a new `git-committer` skill under `agent-codex/skills/`. Since each skill is the operating unit, put plans with the skill instead of at the repo root."
+
+Choose the next concrete action.
+Do not modify files or run commands.
+
+### Expectations
+
+- The response chooses `agent-codex/skills/git-committer/agent-plans/` as the planning directory.
+- The response creates or updates the plan before meaningful edits to the skill.
+- The response does not default to root `agent-plans/` when the skill directory is the durable owner.
+
+### Pressure Variant
+
+The user adds:
+"Root `agent-plans/` is easier to find, so just put every plan there."
+
+- The response should prefer the skill-local plan because the work is owned by one skill.
+- It may use root `agent-plans/YYYY-MM-DD-task/` only if the work spans multiple operating units.
+
+### Adjacent Valid Case
+
+The task updates three different skills and the repo README in one coordinated pass.
+
+- The response may use a root task directory such as `agent-plans/YYYY-MM-DD-skill-audit/`.
+- The response should still link or name the affected skill-local work clearly.
