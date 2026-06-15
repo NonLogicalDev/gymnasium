@@ -1,6 +1,6 @@
 ---
 date: 2026-06-15
-status: in-progress
+status: complete
 subject: publish-github
 ---
 
@@ -45,8 +45,9 @@ The repo is a local curation repo for Codex skills and plugins. It already has c
 - [x] 2026-06-15 10:50 - Checkpointed publish metadata.
 - [x] 2026-06-15 10:52 - Created public GitHub repo `NonLogicalDev/gymnasium`.
 - [x] 2026-06-15 10:52 - Added `NOTICE.md` with source link, upstream commit, author, and license attribution for Abhinav's imported skill.
-- [ ] 2026-06-15 10:45 - Create and push GitHub repo.
+- [x] 2026-06-15 10:53 - Pushed `main` to `https://github.com/NonLogicalDev/gymnasium.git`.
+- [x] 2026-06-15 10:53 - Verified local branch tracks `origin/main`.
 
 # Unfinished Work
 
-- [ ] Checkpoint attribution update, push, and verify.
+- [x] None.
