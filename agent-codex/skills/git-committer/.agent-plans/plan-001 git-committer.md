@@ -15,7 +15,7 @@ The skill should help agents write messages that respect reviewer time and avoid
 # Decisions
 
 - The skill will live at `agent-codex/skills/git-committer/`.
-- The plan lives with the skill at `agent-codex/skills/git-committer/agent-plans/`.
+- The plan lives with the skill at `agent-codex/skills/git-committer/.agent-plans/`.
 - Abhinav's commit-message reference is useful source material, but this skill should be a concise public-facing commit-message authoring guide.
 
 # Implementation Steps

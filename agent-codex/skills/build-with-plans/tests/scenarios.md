@@ -15,8 +15,8 @@ Do not modify files or run commands.
 ### Expectations
 
 - The plan reads repo-local guidance before creating or editing plans.
-- The plan creates or updates an `agent-plans/` plan before meaningful source edits.
-- If no `agent-plans/` directory exists, the response creates the next first plan path, such as `agent-plans/plan-001 settings-import-export.md`.
+- The plan creates or updates a `.agent-plans/` plan before meaningful source edits.
+- If no `.agent-plans/` directory exists, the response creates the next first plan path, such as `.agent-plans/plan-001 settings-import-export.md`.
 - The response keeps the plan lightweight and operational rather than using planning as a reason to delay implementation.
 - The response rejects the shortcut of skipping the plan because the work is "straightforward."
 
@@ -41,7 +41,7 @@ The user asks for a one-line typo fix and does not ask for a plan.
 
 Use the skill at `/path/to/build-with-plans/SKILL.md`.
 
-A repo already has `agent-plans/plan-004 settings-import-export.md` with `status: in-progress`.
+A repo already has `.agent-plans/plan-004 settings-import-export.md` with `status: in-progress`.
 The user says:
 "Add one more acceptance criterion to the settings import/export work: rejected files should show a toast. Do not start a new planning file."
 
@@ -76,21 +76,21 @@ Do not modify files or run commands.
 
 ### Expectations
 
-- The response chooses `agent-codex/skills/git-committer/agent-plans/` as the planning directory.
+- The response chooses `agent-codex/skills/git-committer/.agent-plans/` as the planning directory.
 - The response creates or updates the plan before meaningful edits to the skill.
-- The response does not default to root `agent-plans/` when the skill directory is the durable owner.
+- The response does not default to root `.agent-plans/` when the skill directory is the durable owner.
 
 ### Pressure Variant
 
 The user adds:
-"Root `agent-plans/` is easier to find, so just put every plan there."
+"Root `.agent-plans/` is easier to find, so just put every plan there."
 
 - The response should prefer the skill-local plan because the work is owned by one skill.
-- It may use root `agent-plans/YYYY-MM-DD-task/` only if the work spans multiple operating units.
+- It may use root `.agent-plans/YYYY-MM-DD-task/` only if the work spans multiple operating units.
 
 ### Adjacent Valid Case
 
 The task updates three different skills and the repo README in one coordinated pass.
 
-- The response may use a root task directory such as `agent-plans/YYYY-MM-DD-skill-audit/`.
+- The response may use a root task directory such as `.agent-plans/YYYY-MM-DD-skill-audit/`.
 - The response should still link or name the affected skill-local work clearly.

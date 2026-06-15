@@ -6,16 +6,16 @@ subject: plan-location
 
 # Goal
 
-Refine `build-with-plans` so agent plans live at the smallest durable operating unit, especially under a skill directory when the task is skill-owned.
+Refine `build-with-plans` so `.agent-plans` live at the smallest durable operating unit, especially under a skill directory when the task is skill-owned.
 
 # Context
 
-The current skill defaults to root `agent-plans/`. For this repo, the useful operating unit is often a single skill under `agent-codex/skills/`, so plans should live with the skill they govern. Cross-cutting work can still use root task directories like `agent-plans/YYYY-MM-DD-task/`.
+The current skill should default to `.agent-plans/` at the owning unit. For this repo, the useful operating unit is often a single skill under `agent-codex/skills/`, so plans should live with the skill they govern. Cross-cutting work can still use root task directories like `.agent-plans/YYYY-MM-DD-task/`.
 
 # Decisions
 
-- Skill-owned work should use `agent-plans/` under the skill directory.
-- Cross-cutting repo work can use root `agent-plans/YYYY-MM-DD-task/`.
+- Skill-owned work should use `.agent-plans/` under the skill directory.
+- Cross-cutting repo work can use root `.agent-plans/YYYY-MM-DD-task/`.
 - Existing active plans should be updated when they clearly own a follow-up.
 
 # Implementation Steps

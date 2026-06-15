@@ -1,6 +1,6 @@
 ---
 name: build-with-plans
-description: Maintain numbered agent-plans while building. Use when the user invokes $BuildWithPlans, asks to add a task or plan, starts medium-sized design or functionality work, or works in a project with an agent-plans directory and wants durable decisions, timestamped work logs, unfinished work, and frequent git checkpoints.
+description: Maintain numbered .agent-plans while building. Use when the user invokes $BuildWithPlans, asks to add a task or plan, starts medium-sized design or functionality work, or works in a project with a .agent-plans directory and wants durable decisions, timestamped work logs, unfinished work, and frequent git checkpoints.
 ---
 
 # BuildWithPlans
@@ -26,30 +26,30 @@ and metadata prompts should refer to it as `$build-with-plans`.
 
 Choose the planning location by ownership boundary:
 
-- Skill work: use `agent-plans/` under that skill directory.
-  Example: `agent-codex/skills/git-committer/agent-plans/`.
-- Plugin work: use `agent-plans/` under that plugin directory.
-- App, package, or service work: use `agent-plans/` under that unit directory.
-- Cross-cutting repo work: use a task directory under root `agent-plans/`.
-  Example: `agent-plans/2026-06-12-settings-import/plan-001 import-flow.md`.
+- Skill work: use `.agent-plans/` under that skill directory.
+  Example: `agent-codex/skills/git-committer/.agent-plans/`.
+- Plugin work: use `.agent-plans/` under that plugin directory.
+- App, package, or service work: use `.agent-plans/` under that unit directory.
+- Cross-cutting repo work: use a task directory under root `.agent-plans/`.
+  Example: `.agent-plans/2026-06-12-settings-import/plan-001 import-flow.md`.
 - If an existing active plan clearly owns the follow-up, update it even if another valid location exists.
 
-Use the project root `agent-plans/` only when no smaller durable unit owns the work or when repo-local instructions require it.
+Use the project root `.agent-plans/` only when no smaller durable unit owns the work or when repo-local instructions require it.
 
 ## Plan Naming
 
 Use the next numeric plan id already present in the selected plan directory:
 
 ```text
-agent-plans/plan-NNN short-subject.md
+.agent-plans/plan-NNN short-subject.md
 ```
 
 Examples:
 
 ```text
-agent-plans/plan-007 table-polish.md
-agent-plans/plan-008 app-icon.md
-agent-plans/plan-009 scan-excludes.md
+.agent-plans/plan-007 table-polish.md
+.agent-plans/plan-008 app-icon.md
+.agent-plans/plan-009 scan-excludes.md
 ```
 
 Keep the subject short, lowercase, and descriptive. Use spaces between words unless the repo’s existing plans use a different convention.
@@ -94,7 +94,7 @@ Use `Unfinished Work` when any work remains. Keep it short and actionable, and r
 1. Inspect repo guidance and existing plans.
    - Read repo-local `AGENTS.md`.
    - Identify the smallest durable operating unit for the work.
-   - List existing plans in that unit's `agent-plans/` directory, or in the cross-cutting root task directory when the work spans units.
+   - List existing plans in that unit's `.agent-plans/` directory, or in the cross-cutting root task directory when the work spans units.
    - Identify whether to update the active plan or create the next numbered plan.
 
 2. Create or update the plan before meaningful edits.
