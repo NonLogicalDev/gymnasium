@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.env.*
+*.log
+
+node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+dist/
+build/
+target/
+.qmd-agent/

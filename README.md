@@ -24,3 +24,8 @@ agent-codex/
 - `agent-codex/skills/git-committer/` - skill for drafting crisp public-facing commit messages.
 - `agent-codex/skills/writing-and-updating-skills/` - imported from `abhinav/home`; guidance for authoring and pressure-testing skills.
 - `agent-codex/plugins/` - placeholder for future Codex plugins.
+
+## License
+
+MIT. Some skill material is imported or adapted from
+[`abhinav/home`](https://github.com/abhinav/home), which is also MIT-licensed.
