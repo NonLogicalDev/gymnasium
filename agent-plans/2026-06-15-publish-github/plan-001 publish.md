@@ -34,6 +34,7 @@ The repo is a local curation repo for Codex skills and plugins. It already has c
 - Marketplace publication and GitHub publication are separate: the local Codex marketplace config is already present, while GitHub publication needs a remote repo and pushed history.
 - Public-readiness audit found no obvious secrets, large files, or generated caches in repo contents/history.
 - Imported `writing-and-updating-skills` material is compatible with MIT publication because upstream `abhinav/home` declares the repository contents MIT-licensed.
+- Imported `writing-and-updating-skills` material needs explicit public attribution beyond the license footer.
 
 # Work Log
 
@@ -41,9 +42,11 @@ The repo is a local curation repo for Codex skills and plugins. It already has c
 - [x] 2026-06-15 10:39 - Completed public-readiness audit.
 - [x] 2026-06-15 10:39 - Added MIT license, upstream provenance note, and publish `.gitignore`.
 - [x] 2026-06-15 10:45 - Completed GitHub device authorization for `gh`.
-- [ ] 2026-06-15 10:45 - Checkpoint publish metadata.
+- [x] 2026-06-15 10:50 - Checkpointed publish metadata.
+- [x] 2026-06-15 10:52 - Created public GitHub repo `NonLogicalDev/gymnasium`.
+- [x] 2026-06-15 10:52 - Added `NOTICE.md` with source link, upstream commit, author, and license attribution for Abhinav's imported skill.
 - [ ] 2026-06-15 10:45 - Create and push GitHub repo.
 
 # Unfinished Work
 
-- [ ] Checkpoint publish metadata, create GitHub repo, push, and verify.
+- [ ] Checkpoint attribution update, push, and verify.

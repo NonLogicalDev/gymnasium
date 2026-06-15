@@ -22,10 +22,14 @@ agent-codex/
 - `agent-codex/skills/delegator/` - skill for keeping the main thread lightweight while batching work through subagents.
 - `agent-codex/skills/git-checkpoints/` - skill for creating frequent reversible git checkpoint commits.
 - `agent-codex/skills/git-committer/` - skill for drafting crisp public-facing commit messages.
-- `agent-codex/skills/writing-and-updating-skills/` - imported from `abhinav/home`; guidance for authoring and pressure-testing skills.
+- `agent-codex/skills/writing-and-updating-skills/` - imported and adapted from Abhinav Gupta's
+  [`abhinav/home`](https://github.com/abhinav/home/tree/main/.agents/skills/writing-and-updating-skills);
+  guidance for authoring and pressure-testing skills.
 - `agent-codex/plugins/` - placeholder for future Codex plugins.
+
+See [`NOTICE.md`](NOTICE.md) for imported-material attribution.
 
 ## License
 
 MIT. Some skill material is imported or adapted from
-[`abhinav/home`](https://github.com/abhinav/home), which is also MIT-licensed.
+Abhinav Gupta's [`abhinav/home`](https://github.com/abhinav/home), which is also MIT-licensed.
