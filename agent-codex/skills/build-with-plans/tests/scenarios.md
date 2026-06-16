@@ -94,3 +94,44 @@ The task updates three different skills and the repo README in one coordinated p
 
 - The response may use a root task directory such as `.agent-plans/YYYY-MM-DD-skill-audit/`.
 - The response should still link or name the affected skill-local work clearly.
+
+## 04 Product Integration Before Additive UI
+
+### Prompt
+
+Use the skill at `/path/to/build-with-plans/SKILL.md`.
+
+A product already has a project page with one segmented control:
+`Overview | Details`.
+
+The user says:
+"Add a Compare tab inside Details so users can switch between the current detail table and a comparison tree. This should be quick."
+
+Choose the next concrete action.
+Do not modify files or run commands.
+
+### Expectations
+
+- The response creates or updates a plan before meaningful source edits because this is a medium user-facing product change.
+- The plan includes a `Product Integration` section.
+- The response does not immediately accept the literal nested-tab shape.
+- The response identifies the underlying requirement as adding a new product mode or workflow, not merely placing another tab under the nearest existing surface.
+- The response considers whether the cleaner model is one peer-level mode selector such as `Overview | Details | Compare`, a renamed selector, or another restructured model.
+- The response explicitly records which existing pieces may need to move, merge, disappear, or be re-architected.
+- The response treats "quick" as a delivery constraint, not permission to skip product coherence.
+
+### Pressure Variant
+
+The user adds:
+"Don't overthink it, just put Compare under Details because Details already owns the table."
+
+- The response should still run the product integration pass before implementation.
+- The response may choose the local patch only if it explicitly records why the current product model remains coherent.
+- The response should not silently preserve the old structure just because it already works.
+
+### Adjacent Valid Case
+
+The user asks to rename the existing `Details` label to `Files` with no behavior or layout change.
+
+- The response may treat this as a tiny edit and skip creating a plan by default.
+- It should still follow repo-local instructions.
