@@ -29,11 +29,11 @@ and metadata prompts should refer to it as `$Tasker_Plan`.
 Choose exactly one of these planning locations:
 
 ```text
-~/brain/Projects/<category>/<PRJ_SLUG>/<EPIC_SLUG>/agents-plans/<PLAN_SLUG>.md
+<AGENT_BRAIN_PROJECT_ROOT>/<EPIC_SLUG>/agents-plans/<PLAN_SLUG>.md
 <REPO_ROOT>/.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md
 ```
 
-Use the brain-project layout when the work belongs to a tracked project or task epic in the brain, especially when the plan should survive across repos, checkouts, or implementation surfaces.
+Use the brain-project layout when the work belongs to a tracked project or task epic selected by `$Agent_Brain`, especially when the plan should survive across repos, checkouts, or implementation surfaces. Invoke `$Agent_Brain` to resolve the brain root, read its organization rules, and identify `<AGENT_BRAIN_PROJECT_ROOT>`; do not hard-code a brain directory in this skill.
 
 Use the repo-root layout when the work is owned by one repository checkout and should live with that repo.
 
@@ -122,7 +122,7 @@ Use `Unfinished Work` when any work remains. Keep it short and actionable, and r
 1. Inspect repo guidance and existing plans.
    - Read repo-local `AGENTS.md`.
    - Decide whether the work belongs in the brain-project layout or the repo-root layout.
-   - If using the brain-project layout, identify `<category>`, `<PRJ_SLUG>`, and `<EPIC_SLUG>`.
+   - If using the brain-project layout, invoke `$Agent_Brain` to identify `<AGENT_BRAIN_PROJECT_ROOT>` and `<EPIC_SLUG>`.
    - If using the repo-root layout, identify `<EPIC_SLUG>`.
    - List existing plans in the chosen epic plan directory: `agents-plans/` for brain-project layout or `.agents-plans/<EPIC_SLUG>/` for repo-root layout.
    - Identify whether to update the active plan or create the next numbered `plan-<N>` slug.

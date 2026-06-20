@@ -1,21 +1,23 @@
 ---
 name: Agent_Brain
-description: Use when Codex needs to retrieve or store cross-project personal context in `~/brain`, including prior decisions, memories, daily logs, agent handoffs, current state, or durable user-facing context shared across repos and agent runtimes.
+description: Use when Codex needs to retrieve or store cross-project personal context through the configured brain root, including prior decisions, memories, daily logs, agent handoffs, current state, or durable user-facing context shared across repos and agent runtimes.
 ---
 
 # Agent Brain
 
-Treat `~/brain` as the user's central context system. Use it before scattering memory, handoff notes, or project history into the repo you happen to be working in.
+Treat the resolved brain root as the user's central context system. Use it before scattering memory, handoff notes, or project history into the repo you happen to be working in.
 
 ## Core Contract
 
-Resolve the brain root first. Default to `~/brain`; allow `AGENT_BRAIN_ROOT` to override it when the environment provides one. Verify the root exists before reading or writing.
+Resolve `<brain-root>` first. Use `AGENT_BRAIN_ROOT` when the environment provides one; otherwise use the brain root configured by active global or repo agent instructions. If no root can be determined, ask one short clarifying question instead of assuming a literal path. Other skills should invoke `$Agent_Brain` for this decision instead of hard-coding a brain path.
 
-Read `~/brain/AGENTS.md` before changing anything in the brain. Its rules for note format, folder choice, links, frontmatter, Obsidian moves, and git checkpointing own the final write behavior.
+Verify the brain root is an Obsidian-style markdown vault before applying vault folder assumptions. Prefer a clear `.obsidian/` directory; also look for vault markers such as `AGENTS.md`, `Brain/`, `Journals/`, `Pages/`, `Projects/`, and markdown notes. If the root does not look like an Obsidian-style vault, ask before reading broadly or writing.
+
+Read `<brain-root>/AGENTS.md` before changing anything in the brain. Its rules for note format, folder choice, links, frontmatter, Obsidian moves, git checkpointing, and user-specific organizational preferences or deviations own the final write behavior. If `AGENTS.md` conflicts with this generic skill, `AGENTS.md` wins. If the root otherwise looks like an Obsidian-style vault but `AGENTS.md` is missing, retrieval may proceed read-only with a missing-guidance caveat, but writes must pause for confirmation before creating or changing files.
 
 Use `$Search_QMD` for broad retrieval before direct file reads. Query the brain root, then read only the source files needed to answer or write accurately.
 
-When reporting or persisting paths, use `~/brain/...` and other `~` conventions for user-home paths. Absolute user-directory paths are for immediate tool execution only; do not write them into repo guidance, plans, tests, or notes.
+When reporting or persisting paths, use `<brain-root>/...` or the user-facing shorthand chosen by `$Agent_Brain`. Absolute user-directory paths are for immediate tool execution only; do not write them into repo guidance, plans, tests, or notes.
 
 Do not store cross-project memory in a random project repo. If the content is meant to be remembered by future agents or shared across projects, route it into the brain.
 
@@ -23,18 +25,16 @@ Do not write raw chain-of-thought, secret values, credentials, private contact/p
 
 ## Retrieval Workflow
 
-1. Resolve the root:
-   ```bash
-   BRAIN_ROOT="${AGENT_BRAIN_ROOT:-$HOME/brain}"
-   ```
-2. Read `"$BRAIN_ROOT/AGENTS.md"` for current vault rules.
-3. For active context, read `Brain/Northstar.md` and `Brain/Context.md`; read today's `Journals/YYYY-MM-DD.md` only when the current day may matter.
-4. For broad lookup, use the Search_QMD helper with `--vault-root "$BRAIN_ROOT"`:
+1. Resolve `<brain-root>` from `AGENT_BRAIN_ROOT`, active agent instructions, or explicit user context. Set `BRAIN_ROOT` to that resolved path for commands.
+2. Verify `"$BRAIN_ROOT"` exists and looks like an Obsidian-style markdown vault. Prefer `.obsidian/`; otherwise require enough vault markers to avoid treating a random directory as the brain.
+3. Read `"$BRAIN_ROOT/AGENTS.md"` for current vault rules, including user preferences or deviations about organization. If it is missing, report that caveat and stay read-only unless the user confirms how to proceed.
+4. For active context, read `Brain/Northstar.md` and `Brain/Context.md`; read today's `Journals/YYYY-MM-DD.md` only when the current day may matter.
+5. For broad lookup, use the Search_QMD helper with `--vault-root "$BRAIN_ROOT"`:
    ```bash
    ~/Projects/local/gymnasium/agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root "$BRAIN_ROOT" exec query "decision about <topic>" --json -n 10
    ```
-5. Read the minimum exact files needed after QMD returns paths.
-6. Return a retrieval packet: answer, source file paths, confidence, and any stale/missing context.
+6. Read the minimum exact files needed after QMD returns paths.
+7. Return a retrieval packet: answer, source file paths, confidence, and any stale/missing context.
 
 ## Storage Surfaces
 
@@ -49,14 +49,15 @@ Do not write raw chain-of-thought, secret values, credentials, private contact/p
 
 ## Write Workflow
 
-1. Read `~/brain/AGENTS.md` before planning or making edits, and include that read as the first step of any edit plan.
-2. Confirm the user asked to store or update brain content, or that the task explicitly requires a durable handoff.
-3. Choose the storage surface from the table before editing.
-4. Search first for existing notes to avoid duplicates.
-5. Follow vault frontmatter, tag, wikilink, filename, and markdown indentation rules from `AGENTS.md`.
-6. Preserve user voice. Prefer concise bullets and source links over polished prose.
-7. Report storage surfaces as `~/brain/...` paths unless a tool specifically requires the resolved absolute path.
-8. After meaningful brain edits, follow the brain repo checkpoint rule unless the user says not to.
+1. Resolve `<brain-root>`, verify it is an Obsidian-style markdown vault, then read `<brain-root>/AGENTS.md` before planning or making edits. Include these checks as the first steps of any edit plan. If `AGENTS.md` is missing, ask before writing.
+2. Apply any organization preferences or deviations from `AGENTS.md` before choosing a storage surface.
+3. Confirm the user asked to store or update brain content, or that the task explicitly requires a durable handoff.
+4. Choose the storage surface from the table before editing.
+5. Search first for existing notes to avoid duplicates.
+6. Follow vault frontmatter, tag, wikilink, filename, and markdown indentation rules from `AGENTS.md`.
+7. Preserve user voice. Prefer concise bullets and source links over polished prose.
+8. Report storage surfaces as `<brain-root>/...` or the configured user-facing shorthand unless a tool specifically requires the resolved absolute path.
+9. After meaningful brain edits, follow the brain repo checkpoint rule unless the user says not to.
 
 ## Agent Handoffs
 

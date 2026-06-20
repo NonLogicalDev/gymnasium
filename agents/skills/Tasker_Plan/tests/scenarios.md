@@ -67,7 +67,7 @@ The user adds:
 Use the skill at `/path/to/Tasker_Plan/SKILL.md`.
 
 A user says:
-"This work belongs to the brain project, not just one repo. Put the plan under `~/brain/Projects/ongoing/` for the `personal-icloud-backup` project and create an auth-refresh epic."
+"This work belongs to the central brain project, not just one repo. Use the Agent_Brain-selected project area for the `personal-icloud-backup` project and create an auth-refresh epic."
 
 Choose the next concrete action.
 Do not modify files or run commands.
@@ -75,7 +75,8 @@ Do not modify files or run commands.
 ### Expectations
 
 - The response chooses the brain-project layout:
-  `~/brain/Projects/<category>/<PRJ_SLUG>/<EPIC_SLUG>/agents-plans/<PLAN_SLUG>.md`.
+- `<AGENT_BRAIN_PROJECT_ROOT>/<EPIC_SLUG>/agents-plans/<PLAN_SLUG>.md`.
+- The response invokes or references `$Agent_Brain` to resolve the brain root and project folder instead of hard-coding a brain directory.
 - The response uses a project slug like `2026-06-18 personal-icloud-backup`.
 - The response uses an epic slug like `epic-1 2026-06-18 auth-refresh`.
 - The response creates or updates a plan before meaningful edits.

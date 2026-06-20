@@ -1,4 +1,4 @@
 interface:
   display_name: "Tasker Plan"
   short_description: "Maintain dated epic plans while building."
-  default_prompt: "Use $Tasker_Plan to create or update repo-root or brain-project agents-plans before medium work, maintain decisions/learnings and timestamped work logs, and checkpoint often."
+  default_prompt: "Use $Tasker_Plan to create or update repo-root agents-plans, or use $Agent_Brain to resolve brain-project agents-plans, before medium work; maintain decisions/learnings and timestamped work logs, and checkpoint often."

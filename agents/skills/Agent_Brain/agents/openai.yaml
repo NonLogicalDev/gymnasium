@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Brain"
-  short_description: "Use ~/brain for cross-project memory."
-  default_prompt: "Use $Agent_Brain to retrieve or store cross-project context, decisions, memories, handoffs, or daily logs in ~/brain."
+  short_description: "Use the configured brain root for cross-project memory."
+  default_prompt: "Use $Agent_Brain to retrieve or store cross-project context, decisions, memories, handoffs, or daily logs through the configured brain root."
