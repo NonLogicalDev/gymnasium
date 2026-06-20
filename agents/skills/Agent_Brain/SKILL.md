@@ -6,6 +6,7 @@ description: Use when Codex needs to retrieve or store cross-project personal co
 # Agent Brain
 
 Treat the resolved brain root as the user's central context system. Use it before scattering memory, handoff notes, or project history into the repo you happen to be working in.
+Expect that a session often starts in the brain root and then needs to conduct work in other repos or filesystem locations. Plan for that handoff explicitly instead of assuming the current directory is the only relevant workspace.
 
 ## Core Contract
 
@@ -16,6 +17,8 @@ Verify the brain root is an Obsidian-style markdown vault before applying vault 
 Read `<brain-root>/AGENTS.md` before changing anything in the brain. Its rules for note format, folder choice, links, frontmatter, Obsidian moves, git checkpointing, and user-specific organizational preferences or deviations own the final write behavior. If `AGENTS.md` conflicts with this generic skill, `AGENTS.md` wins. If the root otherwise looks like an Obsidian-style vault but `AGENTS.md` is missing, retrieval may proceed read-only with a missing-guidance caveat, but writes must pause for confirmation before creating or changing files.
 
 Use `$Search_QMD` for broad retrieval before direct file reads. Query the brain root, then read only the source files needed to answer or write accurately.
+
+If the requested work must cross into a trusted root and the sandbox blocks the needed action, request escalation rather than detouring around the boundary. Use the user-granted permission for trusted roots as part of the operating assumption, but still keep the scope narrow and justify the exact action being escalated.
 
 When reporting or persisting paths, use `<brain-root>/...` or the user-facing shorthand chosen by `$Agent_Brain`. Absolute user-directory paths are for immediate tool execution only; do not write them into repo guidance, plans, tests, or notes.
 
