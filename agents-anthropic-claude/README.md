@@ -1,4 +1,4 @@
-# agents-claude
+# agents-anthropic-claude
 
 Claude Code material for Gymnasium. The goal is to collect guidance, plugins, and
 skills tuned for Claude agents — to reduce papercuts and stabilize agents so they
@@ -11,7 +11,7 @@ directory.
 ## Layout
 
 ```text
-agents-claude/
+agents-anthropic-claude/
   CLAUDE.md                            Curated, in-progress agent guidance
   collection/                          Native Claude Code plugin marketplace
     .claude-plugin/marketplace.json    Marketplace manifest
@@ -30,12 +30,12 @@ sources like `"source": "my-plugin"`.
 Add the marketplace from a local checkout:
 
 ```sh
-/plugin marketplace add /Users/nonlogical/Projects/local/gymnasium/agents-claude/collection
+/plugin marketplace add /Users/nonlogical/Projects/local/gymnasium/agents-anthropic-claude/collection
 /plugin install <plugin>@gymnasium-claude
 ```
 
 Once the repo is hosted, users can add it by git URL with a `git-subdir` source
-pointing at `agents-claude/collection`.
+pointing at `agents-anthropic-claude/collection`.
 
 The marketplace name is `gymnasium-claude` (distinct from the Codex catalog's
 `gymnasium`, since each user registers one marketplace per name).

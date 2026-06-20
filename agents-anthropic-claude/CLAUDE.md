@@ -35,6 +35,6 @@ promote the durable ones into a published plugin under `plugins/`.
 
 ## Conventions
 
-- Claude-specific skills, agents, commands, and hooks live inside plugins under
+- Anthropic Claude-specific skills, agents, commands, and hooks live inside plugins under
   `collection/plugins/`; shared runtime-agnostic skills live in the repo's
   top-level `agents/skills/`.

@@ -1,4 +1,4 @@
-# agents-codex
+# agents-openai-codex
 
 Codex-specific material for Gymnasium. The top level is a general home for
 Codex runtime assets; the plugin marketplace lives in `collection/` so it does
@@ -7,7 +7,7 @@ not own the whole directory.
 ## Layout
 
 ```text
-agents-codex/
+agents-openai-codex/
   README.md
   collection/                         Codex plugin marketplace root
     .agents/plugins/marketplace.json  Marketplace manifest

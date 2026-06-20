@@ -17,15 +17,19 @@ agents/
     Skill_Harden/
     Tasker_Delegate/
     Tasker_Plan/
-agents-codex/
+agents-openai-codex/
   README.md
   collection/
     .agents/plugins/marketplace.json
     plugins/
-agents-claude/
+agents-anthropic-claude/
   CLAUDE.md
   collection/
     .claude-plugin/marketplace.json
+    plugins/
+agents-google-antigravity/
+  ANTIGRAVITY.md
+  collection/
     plugins/
 ```
 
@@ -41,13 +45,15 @@ agents-claude/
   guidance for authoring and pressure-testing skills.
 - `agents/skills/Tasker_Delegate/` - skill for keeping the main thread lightweight while batching work through subagents.
 - `agents/skills/Tasker_Plan/` - skill for maintaining durable repo-root or brain-project plans.
-- `agents-codex/` - Codex-specific plugin collection and future Codex runtime material.
-- `agents-codex/collection/.agents/plugins/marketplace.json` - Codex marketplace metadata for the Gymnasium plugin catalog.
-- `agents-codex/collection/plugins/` - placeholder for future Codex plugins published through the Codex collection.
-- `agents-claude/` - native Claude Code plugin marketplace; aimed at reducing papercuts and stabilizing long-running Claude agents.
-- `agents-claude/collection/.claude-plugin/marketplace.json` - Claude Code marketplace manifest (`gymnasium-claude`).
-- `agents-claude/CLAUDE.md` - curated guidance for stabilizing long-running Claude agents.
-- `agents-claude/collection/plugins/` - placeholder for future Claude plugins.
+- `agents-openai-codex/` - Codex-specific plugin collection and future Codex runtime material.
+- `agents-openai-codex/collection/.agents/plugins/marketplace.json` - Codex marketplace metadata for the Gymnasium plugin catalog.
+- `agents-openai-codex/collection/plugins/` - placeholder for future Codex plugins published through the Codex collection.
+- `agents-anthropic-claude/` - native Claude Code plugin marketplace; aimed at reducing papercuts and stabilizing long-running Claude agents.
+- `agents-anthropic-claude/collection/.claude-plugin/marketplace.json` - Claude Code marketplace manifest (`gymnasium-claude`).
+- `agents-anthropic-claude/CLAUDE.md` - curated guidance for stabilizing long-running Claude agents.
+- `agents-anthropic-claude/collection/plugins/` - placeholder for future Claude plugins.
+- `agents-google-antigravity/` - Google Antigravity scaffold for future plugins and runtime guidance.
+- `agents-google-antigravity/collection/plugins/` - placeholder for future Antigravity plugins validated with `agy plugin validate`.
 
 See [`NOTICE.md`](NOTICE.md) for imported-material attribution.
 
