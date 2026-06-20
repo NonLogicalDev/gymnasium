@@ -94,7 +94,7 @@ Search_QMD had outdated helper-path assumptions after Gymnasium moved shared ski
 - `PYTHONPYCACHEPREFIX=/private/tmp/qmd-helper-pycache python3 -m py_compile agents/skills/Search_QMD/scripts/qmd-vault-helper` passed.
 - `UV_CACHE_DIR=/private/tmp/qmd-helper-uv-cache agents/skills/Search_QMD/scripts/qmd-vault-helper --help` prints helper-owned usage without vault setup.
 - `qmd-vault-helper --vault-root <vault> init` and `qmd-vault-helper init --vault-root <vault>` both initialize vault-scoped QMD state.
-- `qmd-vault-helper --vault-root /Users/nonlogical/Notes/Personal-OBS exec --help` passes through to upstream QMD help.
+- `qmd-vault-helper --vault-root ~/brain exec --help` passes through to upstream QMD help.
 - Missing `--vault-root` fails with an agent-readable helper error.
 - Fake local and fake `bunx` method tests passed.
 - Fake `bun-bundle` tests passed for explicit `--package-root` and omitted package root with temporary source materialization plus compiled-binary reuse.

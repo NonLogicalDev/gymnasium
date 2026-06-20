@@ -4,7 +4,7 @@
 
 ### Prompt
 
-Use the skill at `/Users/nonlogical/Projects/local/gymnasium/agents/skills/Search_QMD/SKILL.md`.
+Use the skill at `~/Projects/local/gymnasium/agents/skills/Search_QMD/SKILL.md`.
 
 You are currently in `/work/repos/skill-library`, but the user asks you to set up QMD for a markdown vault at `/work/notes/main-vault` and then search for prior decisions about agent workflow defaults. Assume QMD may not already be initialized for that vault.
 
@@ -37,7 +37,7 @@ The shell is already in `/work/notes/main-vault`, and the agent states that it h
 
 ### Prompt
 
-Use the skill at `/Users/nonlogical/Projects/local/gymnasium/agents/skills/Search_QMD/SKILL.md`.
+Use the skill at `~/Projects/local/gymnasium/agents/skills/Search_QMD/SKILL.md`.
 
 A user asks what the vault says about a past infrastructure decision. You try the QMD helper and get:
 
@@ -69,7 +69,7 @@ The user adds:
 
 ### Prompt
 
-Use the skill at `/Users/nonlogical/Projects/local/gymnasium/agents/skills/Search_QMD/SKILL.md`.
+Use the skill at `~/Projects/local/gymnasium/agents/skills/Search_QMD/SKILL.md`.
 
 You are in `/work/repos/app`, and the user asks:
 "Search the vault for notes about deployment rollback decisions."

@@ -62,9 +62,9 @@ The QMD helper was converted to `qmd-vault-helper` with explicit `init` and `exe
 
 # Validation
 
-- Baseline setup scenario failed before the repair: the agent would run `collection add .` from the Gymnasium checkout while targeting `/Users/nonlogical/Notes/Personal-OBS`.
+- Baseline setup scenario failed before the repair: the agent would run `collection add .` from the Gymnasium checkout while targeting `~/brain`.
 - Baseline storage-error scenario already passed before the repair: the agent chose helper repair or unsandboxed helper approval instead of direct `rg`.
-- After the repair, the setup pressure scenario passed: the agent used `init`, `exec update`, `exec embed`, and `exec query` with `--vault-root /Users/nonlogical/Notes/Personal-OBS`, and explicitly rejected `collection add .` from Gymnasium.
+- After the repair, the setup pressure scenario passed: the agent used `init`, `exec update`, `exec embed`, and `exec query` with `--vault-root ~/brain`, and explicitly rejected `collection add .` from Gymnasium.
 - After the repair, the storage-error pressure scenario passed under senior-reviewer/time pressure.
 - After the repair, the ambiguous-root scenario passed: the agent refused `--vault-root "$PWD"` from an app repo and planned to identify or ask for the target vault root before running QMD.
 - `git diff --check -- agents/skills/Search_QMD/SKILL.md agents/skills/Search_QMD/tests <plan>` passed.
