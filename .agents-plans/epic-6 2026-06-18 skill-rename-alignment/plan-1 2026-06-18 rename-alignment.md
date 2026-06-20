@@ -1,6 +1,6 @@
 ---
 date: 2026-06-18
-status: in-progress
+status: complete
 subject: rename-alignment
 ---
 
@@ -34,7 +34,8 @@ The old canonical folders such as `delegator/` and `build-with-plans/` were repl
 - [x] 2026-06-18 22:16 - Patched the renamed skills so folder identity, metadata, prompts, tests, and the QMD helper path agree with the new chat-facing names.
 - [x] 2026-06-18 22:16 - Verified the resulting tree with targeted ripgrep sweeps for stale canonical handles and spot-checked the updated frontmatter and agent metadata.
 - [x] 2026-06-18 22:19 - Switched the skill `name` fields to the requested `NAMESPACE_NAME` form and updated the identity text to prefer the exact chat-facing names over validator-style lowercase aliases.
+- [x] 2026-06-20 15:09 - Moved the remaining QMD helper contract question into `epic-8 2026-06-20 qmd-vault-helper`.
 
 # Unfinished Work
 
-- [ ] Decide whether the vault should also expose a compatibility wrapper again at `.agents/scripts/qmd` or rely only on the skill-local wrapper path.
+- [x] Decide whether the vault should also expose a compatibility wrapper again at `.agents/scripts/qmd` or rely only on the skill-local wrapper path. Resolved in `epic-8 2026-06-20 qmd-vault-helper`.
