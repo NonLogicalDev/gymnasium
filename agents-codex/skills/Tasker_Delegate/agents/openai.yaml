@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tasker Delegate"
+  short_description: "Protect context with batched subagents"
+  default_prompt: "Use $Tasker_Delegate to coordinate this work through batched subagents while preserving main-thread context."

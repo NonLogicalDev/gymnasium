@@ -1,4 +1,0 @@
-interface:
-  display_name: "Git Committer"
-  short_description: "Draft crisp public commit messages."
-  default_prompt: "Use $git-committer to draft a crisp public-facing commit message with context, change, rationale, and validation."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Delegator"
-  short_description: "Protect context with batched subagents"
-  default_prompt: "Use $delegator to coordinate this work through batched subagents while preserving main-thread context."

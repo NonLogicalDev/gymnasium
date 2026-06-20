@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Commit"
+  short_description: "Draft crisp public commit messages."
+  default_prompt: "Use $Code_Commit to draft a crisp public-facing commit message with context, change, rationale, and validation."
