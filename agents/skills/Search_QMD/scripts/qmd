@@ -4,8 +4,16 @@
 # falls back to nix run nixpkgs#bun (always works, slower on first fetch).
 set -euo pipefail
 
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-vault_root="$(cd -- "${script_dir}/../.." && pwd)"
+# The helper can be reached through a vault-local .agents/skills symlink, so
+# the script location is the skill install path, not necessarily the vault.
+if [[ -n "${QMD_VAULT_ROOT:-}" ]]; then
+    vault_root="$(cd -- "${QMD_VAULT_ROOT}" && pwd)"
+elif git_root="$(git -C "${PWD}" rev-parse --show-toplevel 2>/dev/null)"; then
+    vault_root="${git_root}"
+else
+    vault_root="${PWD}"
+fi
+
 state_dir="${QMD_STATE_DIR:-"${vault_root}/.qmd-agent"}"
 config_dir="${QMD_CONFIG_DIR:-"${state_dir}/config"}"
 cache_home="${XDG_CACHE_HOME:-"${state_dir}/cache"}"
@@ -16,7 +24,7 @@ mkdir -p "${config_dir}" "${cache_home}/qmd"
 # ~/.cache. Keep QMD's mutable state inside the vault so semantic search works
 # for agents without requiring an unsandboxed retry.
 if [[ ! -f "${config_dir}/index.yml" ]]; then
-    if [[ -f "${HOME}/.config/qmd/index.yml" ]]; then
+    if [[ -f "${HOME}/.config/qmd/index.yml" ]] && grep -Fq "path: ${vault_root}" "${HOME}/.config/qmd/index.yml"; then
         cp "${HOME}/.config/qmd/index.yml" "${config_dir}/index.yml"
     else
         cat >"${config_dir}/index.yml" <<EOF
