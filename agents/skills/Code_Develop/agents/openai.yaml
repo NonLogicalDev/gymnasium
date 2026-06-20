@@ -1,4 +1,0 @@
-interface:
-  display_name: "Code Develop"
-  short_description: "Iterate code toward the simplest sound result."
-  default_prompt: "Use $Code_Develop to implement the goal, then run adversarial review and fix cycles until the solution is the smallest reasonable shape."
