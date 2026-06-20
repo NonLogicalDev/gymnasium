@@ -6,16 +6,16 @@ subject: plan-location
 
 # Goal
 
-Refine `build-with-plans` so `.agent-plans` live at the smallest durable operating unit, especially under a skill directory when the task is skill-owned.
+Record the earlier `build-with-plans` plan-location refinement and mark it as superseded by the current `$Tasker_Plan` repo-root layout.
 
 # Context
 
-The current skill should default to `.agent-plans/` at the owning unit. For this repo, the useful operating unit is often a single skill under `agent-codex/skills/`, so plans should live with the skill they govern. Cross-cutting work can still use root task directories like `.agent-plans/YYYY-MM-DD-task/`.
+This plan records the pre-`$Tasker_Plan` convention, where `.agent-plans/` lived at the owning unit. The current repo-owned layout is `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md` under the repo root, so this plan now lives in the `tasker-plan` epic.
 
 # Decisions
 
-- Skill-owned work should use `.agent-plans/` under the skill directory.
-- Cross-cutting repo work can use root `.agent-plans/YYYY-MM-DD-task/`.
+- Historical decision: skill-owned work used `.agent-plans/` under the skill directory.
+- Current decision: repo-owned work uses `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md`, so skill ownership is represented by epic subjects.
 - Existing active plans should be updated when they clearly own a follow-up.
 
 # Implementation Steps

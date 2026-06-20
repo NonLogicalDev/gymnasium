@@ -6,7 +6,7 @@ subject: product-integration
 
 # Goal
 
-Update `build-with-plans` so future medium-sized product, UI, and architecture work records how new requirements integrate into the whole product instead of defaulting to local additive patches.
+Update `Tasker_Plan`, then still referred to as `build-with-plans`, so future medium-sized product, UI, and architecture work records how new requirements integrate into the whole product instead of defaulting to local additive patches.
 
 # Context
 

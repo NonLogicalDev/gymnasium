@@ -6,7 +6,7 @@ subject: default-delegation
 
 # Goal
 
-Refine `delegator` so its default operating mode is manager-style delegation for any meaningful work, even when the work is not parallelizable.
+Refine `Tasker_Delegate`, originally `delegator`, so its default operating mode is manager-style delegation for any meaningful work, even when the work is not parallelizable.
 
 # Context
 

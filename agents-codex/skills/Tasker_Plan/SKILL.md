@@ -29,8 +29,8 @@ and metadata prompts should refer to it as `$Tasker_Plan`.
 Choose exactly one of these planning locations:
 
 ```text
-~/brain/Projects/<category>/<PRJ_SLUG>/<EPIC_SLUG>/agents-plans/<PLAN_SLUG>
-<REPO_ROOT>/.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>
+~/brain/Projects/<category>/<PRJ_SLUG>/<EPIC_SLUG>/agents-plans/<PLAN_SLUG>.md
+<REPO_ROOT>/.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md
 ```
 
 Use the brain-project layout when the work belongs to a tracked project or task epic in the brain, especially when the plan should survive across repos, checkouts, or implementation surfaces.
@@ -57,7 +57,8 @@ Increment `<N>` within the parent container:
 
 - Project slug dates identify when the project container was created.
 - `epic-<N>` increments within the project or repo root.
-- `plan-<N>` increments within the epic's `agents-plans` directory.
+- In brain-project layout, `plan-<N>` increments within the epic's `agents-plans` directory.
+- In repo-root layout, `plan-<N>` increments within `.agents-plans/<EPIC_SLUG>/`.
 
 Examples:
 
@@ -123,7 +124,7 @@ Use `Unfinished Work` when any work remains. Keep it short and actionable, and r
    - Decide whether the work belongs in the brain-project layout or the repo-root layout.
    - If using the brain-project layout, identify `<category>`, `<PRJ_SLUG>`, and `<EPIC_SLUG>`.
    - If using the repo-root layout, identify `<EPIC_SLUG>`.
-   - List existing plans in the chosen epic's `agents-plans` directory.
+   - List existing plans in the chosen epic plan directory: `agents-plans/` for brain-project layout or `.agents-plans/<EPIC_SLUG>/` for repo-root layout.
    - Identify whether to update the active plan or create the next numbered `plan-<N>` slug.
 
 2. Create or update the plan before meaningful edits.

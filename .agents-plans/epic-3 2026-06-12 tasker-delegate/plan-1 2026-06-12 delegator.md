@@ -6,7 +6,7 @@ subject: delegator
 
 # Goal
 
-Create a new Codex skill named `delegator` that makes the main thread act as a lightweight coordinator while delegating bulk work to subagents in batches.
+Create the delegation skill now named `Tasker_Delegate`, originally `delegator`, that makes the main thread act as a lightweight coordinator while delegating bulk work to subagents in batches.
 
 # Context
 
@@ -14,7 +14,7 @@ The user wants the main thread's context protected. The skill should push resear
 
 # Decisions
 
-- Place the skill at `agent-codex/skills/delegator/`.
+- Place the skill at `agents-codex/skills/Tasker_Delegate/` after the rename alignment.
 - Treat this as a discipline-enforcing skill because agents can rationalize doing broad work locally when under pressure.
 - Persist reusable behavioral scenarios in `tests/` because the desired behavior has clear failure modes.
 - Use existing local conventions from `build-with-plans`, `writing-and-updating-skills`, and `git-checkpoints`.

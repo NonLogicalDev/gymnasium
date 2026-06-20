@@ -10,7 +10,7 @@ Align the renamed skill folders under `.agents/skills/` with their internal meta
 
 # Context
 
-The old canonical folders such as `delegator/` and `build-with-plans/` were replaced by chat-facing folders like `Tasker_Delegate/` and `Tasker_Plan/`. The content inside those folders still largely refers to the old canonical names, and the vault also still expects some helpers in the old shared locations.
+The old canonical folders such as `delegator/` and `build-with-plans/` were replaced by chat-facing folders like `Tasker_Delegate/` and `Tasker_Plan/`. The content inside those folders still largely referred to the old canonical names, and the vault also expected some helpers in the old shared locations.
 
 # Product Integration
 

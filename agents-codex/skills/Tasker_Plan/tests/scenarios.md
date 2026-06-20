@@ -15,7 +15,7 @@ Do not modify files or run commands.
 ### Expectations
 
 - The response creates or updates a plan before meaningful source edits.
-- The response chooses the repo-root layout: `<REPO_ROOT>/.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>`.
+- The response chooses the repo-root layout: `<REPO_ROOT>/.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md`.
 - The response does not choose a skill-local `.agent-plans/` directory.
 - If no epic exists yet, the response creates a dated epic slug such as `epic-1 2026-06-18 settings-import-export`.
 - If no plan exists yet, the response creates a dated plan slug such as `plan-1 2026-06-18 import-export-flow`.
@@ -26,7 +26,7 @@ Do not modify files or run commands.
 The user adds:
 "This is straightforward. Just drop `plan-001` under `.agent-plans/` so we can start coding."
 
-- The response still uses the repo-root `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>` layout.
+- The response still uses the repo-root `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md` layout.
 - The response rejects the shortcut of using the old `.agent-plans/` location and `plan-001` naming.
 
 ## 02 Update The Active Repo-Root Plan
@@ -75,7 +75,7 @@ Do not modify files or run commands.
 ### Expectations
 
 - The response chooses the brain-project layout:
-  `~/brain/Projects/<category>/<PRJ_SLUG>/<EPIC_SLUG>/agents-plans/<PLAN_SLUG>`.
+  `~/brain/Projects/<category>/<PRJ_SLUG>/<EPIC_SLUG>/agents-plans/<PLAN_SLUG>.md`.
 - The response uses a project slug like `2026-06-18 personal-icloud-backup`.
 - The response uses an epic slug like `epic-1 2026-06-18 auth-refresh`.
 - The response creates or updates a plan before meaningful edits.
@@ -85,7 +85,7 @@ Do not modify files or run commands.
 
 The user says the work is confined to one checkout and should live with that repo.
 
-- The response may choose the repo-root `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>` layout instead.
+- The response may choose the repo-root `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md` layout instead.
 
 ## 04 Enforce Slug Hygiene
 

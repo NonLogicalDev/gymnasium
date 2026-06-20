@@ -2,7 +2,7 @@
 
 ## Imported Skill Material
 
-`agent-codex/skills/writing-and-updating-skills/` is imported and adapted from
+`agents-codex/skills/Skill_Harden/` is imported and adapted from
 Abhinav Gupta's `abhinav/home` repository:
 
 - Source: [`abhinav/home/.agents/skills/writing-and-updating-skills`](https://github.com/abhinav/home/tree/main/.agents/skills/writing-and-updating-skills)

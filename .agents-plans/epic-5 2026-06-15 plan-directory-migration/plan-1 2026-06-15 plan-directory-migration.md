@@ -6,17 +6,17 @@ subject: dot-plans
 
 # Goal
 
-Move durable plans to `.agent-plans/` and update the skills and repo references that teach or assume the old path.
+Record the previous migration to `.agent-plans/` and mark it as superseded by the current `$Tasker_Plan` `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md` layout.
 
 # Context
 
-Plan files are agent-maintenance artifacts. Keeping them under `.agent-plans/` makes them available for continuity while reducing clutter in skill and repo directories.
+This historical plan records the old hidden-directory convention. Current repo-owned plans now live under `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md` at the repo root.
 
 # Decisions
 
-- Use `.agent-plans/` at the same ownership boundary where visible plan directories were previously used.
-- Migrate existing plan directories instead of leaving mixed conventions.
-- Update `build-with-plans` tests because plan location is a behavior boundary.
+- Historical decision: use `.agent-plans/` at the same ownership boundary where visible plan directories were previously used.
+- Current decision: use repo-root `.agents-plans/<EPIC_SLUG>/<PLAN_SLUG>.md` for repo-owned plans.
+- Plan location is a behavior boundary, so skill tests should move with the convention.
 
 # Implementation Steps
 
