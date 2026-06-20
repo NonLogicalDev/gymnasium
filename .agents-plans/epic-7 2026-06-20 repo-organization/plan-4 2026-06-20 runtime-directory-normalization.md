@@ -38,6 +38,7 @@ ambiguous once Google entered the set.
 - [x] 2026-06-20 14:33 - Renamed `agents-claude` to `agents-anthropic-claude`.
 - [x] 2026-06-20 14:33 - Added the initial `agents-google-antigravity` scaffold.
 - [x] 2026-06-20 14:33 - Validated docs, plugin scaffold, and git status.
+- [x] 2026-06-20 14:42 - Consolidated this plan under the shared `repo-organization` epic.
 
 # Unfinished Work
 

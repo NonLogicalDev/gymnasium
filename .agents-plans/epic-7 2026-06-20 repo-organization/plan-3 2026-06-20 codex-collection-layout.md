@@ -34,6 +34,7 @@ The Claude runtime tree already uses `agents-claude/collection/` as the marketpl
 - [x] 2026-06-20 14:17 - Moved Codex marketplace files under `agents-codex/collection/`.
 - [x] 2026-06-20 14:17 - Updated docs and stale path notes.
 - [x] 2026-06-20 14:20 - Validated marketplace structure.
+- [x] 2026-06-20 14:42 - Consolidated this plan under the shared `repo-organization` epic.
 
 # Unfinished Work
 

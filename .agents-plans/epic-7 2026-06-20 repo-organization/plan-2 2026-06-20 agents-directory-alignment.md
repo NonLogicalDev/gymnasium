@@ -34,6 +34,7 @@ The repo now exposes skill names directly as the public `Tasker_*`, `Code_*`, `S
 - [x] 2026-06-20 14:03 - Moved the skill root and patched live references.
 - [x] 2026-06-20 14:03 - Repointed the brain `.agents/skills` symlink.
 - [x] 2026-06-20 14:06 - Ran final validation.
+- [x] 2026-06-20 14:42 - Consolidated this plan under the shared `repo-organization` epic.
 
 # Unfinished Work
 

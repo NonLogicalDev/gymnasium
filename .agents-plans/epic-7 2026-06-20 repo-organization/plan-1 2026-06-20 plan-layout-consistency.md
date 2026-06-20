@@ -38,6 +38,7 @@ The repo still used the previous `.agent-plans` convention, including skill-loca
 - [x] 2026-06-20 13:56 - Moved and renamed the tracked plan files into `.agents-plans/`.
 - [x] 2026-06-20 13:56 - Patched stale plan-location wording and repo path docs.
 - [x] 2026-06-20 13:59 - Ran final hidden-path and tracked-layout validation.
+- [x] 2026-06-20 14:42 - Consolidated this plan under the shared `repo-organization` epic.
 
 # Unfinished Work
 
