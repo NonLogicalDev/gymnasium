@@ -7,8 +7,7 @@ The initial focus is Codex, with room to adapt useful patterns to other agent ru
 ## Layout
 
 ```text
-agents-codex/
-  .agents/plugins/marketplace.json
+agents/
   skills/
     Code_Checkpoint/
     Code_Commit/
@@ -18,22 +17,24 @@ agents-codex/
     Skill_Harden/
     Tasker_Delegate/
     Tasker_Plan/
+agents-codex/
+  .agents/plugins/marketplace.json
   plugins/
 ```
 
 ## Current Contents
 
-- `agents-codex/.agents/plugins/marketplace.json` - Codex marketplace metadata for the Gymnasium plugin catalog.
-- `agents-codex/skills/Code_Checkpoint/` - skill for creating frequent reversible git checkpoint commits.
-- `agents-codex/skills/Code_Commit/` - skill for drafting crisp public-facing commit messages.
-- `agents-codex/skills/Code_Develop/` - skill for implementing focused development work with verification.
-- `agents-codex/skills/Code_Projects/` - skill for checking local project and clone locations before fetching.
-- `agents-codex/skills/Search_QMD/` - skill for searching the vault with QMD.
-- `agents-codex/skills/Skill_Harden/` - imported and adapted skill-authoring discipline from Abhinav Gupta's
+- `agents/skills/Code_Checkpoint/` - skill for creating frequent reversible git checkpoint commits.
+- `agents/skills/Code_Commit/` - skill for drafting crisp public-facing commit messages.
+- `agents/skills/Code_Develop/` - skill for implementing focused development work with verification.
+- `agents/skills/Code_Projects/` - skill for checking local project and clone locations before fetching.
+- `agents/skills/Search_QMD/` - skill for searching the vault with QMD.
+- `agents/skills/Skill_Harden/` - imported and adapted skill-authoring discipline from Abhinav Gupta's
   [`abhinav/home`](https://github.com/abhinav/home/tree/main/.agents/skills/writing-and-updating-skills);
   guidance for authoring and pressure-testing skills.
-- `agents-codex/skills/Tasker_Delegate/` - skill for keeping the main thread lightweight while batching work through subagents.
-- `agents-codex/skills/Tasker_Plan/` - skill for maintaining durable repo-root or brain-project plans.
+- `agents/skills/Tasker_Delegate/` - skill for keeping the main thread lightweight while batching work through subagents.
+- `agents/skills/Tasker_Plan/` - skill for maintaining durable repo-root or brain-project plans.
+- `agents-codex/.agents/plugins/marketplace.json` - Codex marketplace metadata for the Gymnasium plugin catalog.
 - `agents-codex/plugins/` - placeholder for future Codex plugins.
 
 See [`NOTICE.md`](NOTICE.md) for imported-material attribution.

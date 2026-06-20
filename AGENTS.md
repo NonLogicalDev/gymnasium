@@ -4,7 +4,7 @@ This repo curates reusable skills and plugins for coding agents.
 
 ## Scope
 
-- `agents-codex/skills/` contains Codex-compatible skills.
+- `agents/skills/` contains Codex-compatible skills.
 - `agents-codex/plugins/` contains Codex-compatible plugins.
 - Future agent runtimes should get their own top-level `agent-<runtime>/` folder.
 

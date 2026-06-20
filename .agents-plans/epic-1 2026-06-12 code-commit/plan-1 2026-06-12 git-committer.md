@@ -14,7 +14,7 @@ The skill should help agents write messages that respect reviewer time and avoid
 
 # Decisions
 
-- The skill was created as `git-committer` and now lives at `agents-codex/skills/Code_Commit/`.
+- The skill was created as `git-committer` and now lives at `agents/skills/Code_Commit/`.
 - This plan now lives under the repo-root `$Tasker_Plan` layout at `.agents-plans/epic-1 2026-06-12 code-commit/`.
 - Abhinav's commit-message reference is useful source material, but this skill should be a concise public-facing commit-message authoring guide.
 
