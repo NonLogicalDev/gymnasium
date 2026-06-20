@@ -15,7 +15,8 @@ The repo now exposes skill names directly as the public `Tasker_*`, `Code_*`, `S
 # Decisions
 
 - Use `agents/skills` as the active skill root.
-- Leave `agents-codex/.agents/plugins/marketplace.json` and `agents-codex/plugins/` in place because the user only asked to move the skills root.
+- Historical decision: leave `agents-codex/.agents/plugins/marketplace.json` and `agents-codex/plugins/` in place because that request only moved the skills root.
+- Current follow-up: move the Codex marketplace root under `agents-codex/collection/`.
 - Update current repo docs and current-path notes to `agents/skills`; keep older historical mentions only when they describe prior names or upstream source paths.
 - Update the brain symlink directly, but do not checkpoint the vault because `.agents` already has unrelated dirty state.
 

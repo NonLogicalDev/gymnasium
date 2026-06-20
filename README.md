@@ -18,8 +18,15 @@ agents/
     Tasker_Delegate/
     Tasker_Plan/
 agents-codex/
-  .agents/plugins/marketplace.json
-  plugins/
+  README.md
+  collection/
+    .agents/plugins/marketplace.json
+    plugins/
+agents-claude/
+  CLAUDE.md
+  collection/
+    .claude-plugin/marketplace.json
+    plugins/
 ```
 
 ## Current Contents
@@ -34,8 +41,13 @@ agents-codex/
   guidance for authoring and pressure-testing skills.
 - `agents/skills/Tasker_Delegate/` - skill for keeping the main thread lightweight while batching work through subagents.
 - `agents/skills/Tasker_Plan/` - skill for maintaining durable repo-root or brain-project plans.
-- `agents-codex/.agents/plugins/marketplace.json` - Codex marketplace metadata for the Gymnasium plugin catalog.
-- `agents-codex/plugins/` - placeholder for future Codex plugins.
+- `agents-codex/` - Codex-specific plugin collection and future Codex runtime material.
+- `agents-codex/collection/.agents/plugins/marketplace.json` - Codex marketplace metadata for the Gymnasium plugin catalog.
+- `agents-codex/collection/plugins/` - placeholder for future Codex plugins published through the Codex collection.
+- `agents-claude/` - native Claude Code plugin marketplace; aimed at reducing papercuts and stabilizing long-running Claude agents.
+- `agents-claude/collection/.claude-plugin/marketplace.json` - Claude Code marketplace manifest (`gymnasium-claude`).
+- `agents-claude/CLAUDE.md` - curated guidance for stabilizing long-running Claude agents.
+- `agents-claude/collection/plugins/` - placeholder for future Claude plugins.
 
 See [`NOTICE.md`](NOTICE.md) for imported-material attribution.
 
