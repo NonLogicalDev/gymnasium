@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "gymnasium-claude",
+  "owner": {
+    "name": "Oleg Utkin",
+    "email": "utkoleg@gmail.com"
+  },
+  "metadata": {
+    "description": "Claude-specific plugins, skills, and guidance from Gymnasium.",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": []
+}
