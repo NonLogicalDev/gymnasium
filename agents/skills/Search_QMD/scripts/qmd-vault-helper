@@ -1,0 +1,387 @@
+#!/usr/bin/env bash
+# qmd-vault-helper keeps QMD's mutable state scoped to an explicit vault root,
+# then invokes QMD using a selectable local, bun-bundle, bunx, or nix strategy.
+set -euo pipefail
+
+qmd_package="${QMD_PACKAGE:-@tobilu/qmd}"
+qmd_binary="${QMD_LOCAL_BINARY:-qmd}"
+vault_root_input="${QMD_VAULT_ROOT:-}"
+invoke_methods="${QMD_INVOKE_METHOD:-local,bun-bundle,bunx,nix}"
+state_dir_input="${QMD_STATE_DIR:-}"
+config_dir_input="${QMD_CONFIG_DIR:-}"
+cache_home_input="${QMD_CACHE_HOME:-${XDG_CACHE_HOME:-}}"
+
+show_helper_help() {
+    cat <<'EOF'
+qmd-vault-helper - run QMD against an explicit markdown vault
+
+Usage:
+  qmd-vault-helper <helper-args> -- <qmd-command> [qmd-options]
+  qmd-vault-helper --help
+  qmd-vault-helper --qmd-help
+
+Examples:
+  qmd-vault-helper --vault-root /Users/me/Notes -- query "decision about backups" --json -n 10
+  qmd-vault-helper --vault-root /Users/me/Notes -- search "Ada Lovelace" --json -n 10
+  qmd-vault-helper --vault-root /Users/me/Notes -- update
+  qmd-vault-helper --vault-root /Users/me/Notes --invoke-method bun-bundle -- vsearch "graph notes"
+
+Helper arguments:
+  --vault-root PATH       Vault root to search. Required unless QMD_VAULT_ROOT is set.
+  --invoke-method LIST    Invocation method or ordered preference list.
+                          Default: local,bun-bundle,bunx,nix
+                          Supported entries: local, bun-bundle, bunx, nix
+  --local-binary NAME     Binary used by the local method. Default: qmd
+  --package NAME          Package used by bun-bundle/bunx/nix methods.
+                          Default: @tobilu/qmd
+  --package-root PATH     Existing package root for bun-bundle compilation.
+  --state-dir PATH        Directory for helper-managed QMD config/cache state.
+                          Default: <vault-root>/.qmd-agent
+  --config-dir PATH       QMD config directory. Default: <state-dir>/config
+  --cache-home PATH       Cache root exported as XDG_CACHE_HOME.
+                          Default: <state-dir>/cache, unless XDG_CACHE_HOME is set
+  --qmd-help              Print the underlying QMD CLI help.
+
+Environment equivalents:
+  QMD_VAULT_ROOT, QMD_INVOKE_METHOD, QMD_LOCAL_BINARY, QMD_PACKAGE,
+  QMD_PACKAGE_ROOT, QMD_STATE_DIR, QMD_CONFIG_DIR, QMD_CACHE_HOME
+
+Invocation methods:
+  local               Execute qmd from PATH. Fastest and preferred when installed.
+  bun-bundle          Compile a cache-local QMD executable with Bun on first use,
+                      smoke-test it, then reuse it on later runs.
+  bunx                Run QMD through bunx, or "bun x" when bunx is absent.
+  nix                 Run QMD through: nix run nixpkgs#bun -- x @tobilu/qmd
+
+Notes for agents:
+  - This helper is standalone inside the Search_QMD skill.
+  - Do not assume a vault-local .agents path.
+  - Always provide the vault root explicitly with --vault-root or QMD_VAULT_ROOT.
+  - If QMD storage fails, fix this helper or rerun it with the needed permissions;
+    do not silently bypass QMD with grep/find/direct reads.
+  - Use --qmd-help to print the underlying QMD CLI help.
+EOF
+}
+
+qmd_args=()
+
+if [[ $# -eq 0 ]]; then
+    show_helper_help
+    exit 0
+fi
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help|help)
+            show_helper_help
+            exit 0
+            ;;
+        --qmd-help)
+            shift
+            qmd_args=(--help "$@")
+            break
+            ;;
+        --)
+            shift
+            qmd_args=("$@")
+            break
+            ;;
+        --vault-root)
+            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --vault-root requires a value.\n' >&2; exit 64; }
+            vault_root_input="$2"
+            shift 2
+            ;;
+        --vault-root=*)
+            vault_root_input="${1#*=}"
+            shift
+            ;;
+        --invoke-method)
+            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --invoke-method requires a value.\n' >&2; exit 64; }
+            invoke_methods="$2"
+            shift 2
+            ;;
+        --invoke-method=*)
+            invoke_methods="${1#*=}"
+            shift
+            ;;
+        --local-binary)
+            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --local-binary requires a value.\n' >&2; exit 64; }
+            qmd_binary="$2"
+            shift 2
+            ;;
+        --local-binary=*)
+            qmd_binary="${1#*=}"
+            shift
+            ;;
+        --package)
+            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --package requires a value.\n' >&2; exit 64; }
+            qmd_package="$2"
+            shift 2
+            ;;
+        --package=*)
+            qmd_package="${1#*=}"
+            shift
+            ;;
+        --package-root)
+            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --package-root requires a value.\n' >&2; exit 64; }
+            QMD_PACKAGE_ROOT="$2"
+            shift 2
+            ;;
+        --package-root=*)
+            QMD_PACKAGE_ROOT="${1#*=}"
+            shift
+            ;;
+        --state-dir)
+            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --state-dir requires a value.\n' >&2; exit 64; }
+            state_dir_input="$2"
+            shift 2
+            ;;
+        --state-dir=*)
+            state_dir_input="${1#*=}"
+            shift
+            ;;
+        --config-dir)
+            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --config-dir requires a value.\n' >&2; exit 64; }
+            config_dir_input="$2"
+            shift 2
+            ;;
+        --config-dir=*)
+            config_dir_input="${1#*=}"
+            shift
+            ;;
+        --cache-home)
+            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --cache-home requires a value.\n' >&2; exit 64; }
+            cache_home_input="$2"
+            shift 2
+            ;;
+        --cache-home=*)
+            cache_home_input="${1#*=}"
+            shift
+            ;;
+        *)
+            printf 'qmd-vault-helper: unexpected helper argument before --: %s\n' "$1" >&2
+            printf 'Use: qmd-vault-helper <helper-args> -- <qmd-command> [qmd-options]\n' >&2
+            exit 64
+            ;;
+    esac
+done
+
+if [[ ${#qmd_args[@]} -eq 0 ]]; then
+    printf 'qmd-vault-helper: missing QMD command after --.\n' >&2
+    printf 'Use --help for helper usage or --qmd-help for QMD CLI help.\n' >&2
+    exit 64
+fi
+
+if [[ -z "${vault_root_input}" ]]; then
+    printf 'qmd-vault-helper: QMD_VAULT_ROOT is required and must point at the vault root.\n' >&2
+    exit 64
+fi
+
+if [[ ! -d "${vault_root_input}" ]]; then
+    printf 'qmd-vault-helper: vault root is not a directory: %s\n' "${vault_root_input}" >&2
+    exit 64
+fi
+
+vault_root="$(cd -- "${vault_root_input}" && pwd)"
+state_dir="${state_dir_input:-"${vault_root}/.qmd-agent"}"
+config_dir="${config_dir_input:-"${state_dir}/config"}"
+cache_home="${cache_home_input:-"${state_dir}/cache"}"
+qmd_cache_dir="${cache_home}/qmd"
+
+mkdir -p "${config_dir}" "${qmd_cache_dir}"
+
+# Agent sandboxes and CI jobs may not be allowed to write ~/.config or ~/.cache.
+# Keep QMD's mutable state under the target vault by default.
+if [[ ! -f "${config_dir}/index.yml" ]]; then
+    if [[ -f "${HOME}/.config/qmd/index.yml" ]] && grep -Fq "path: ${vault_root}" "${HOME}/.config/qmd/index.yml"; then
+        cp "${HOME}/.config/qmd/index.yml" "${config_dir}/index.yml"
+    else
+        cat >"${config_dir}/index.yml" <<EOF
+collections:
+  vault:
+    path: ${vault_root}
+    pattern: "**/*.md"
+    context:
+      "": "Personal knowledge base: research notes, career, daily journals, web clippings"
+EOF
+    fi
+fi
+
+if [[ ! -f "${qmd_cache_dir}/index.sqlite" && -f "${HOME}/.cache/qmd/index.sqlite" ]]; then
+    cp "${HOME}/.cache/qmd/index.sqlite" "${qmd_cache_dir}/index.sqlite"
+fi
+
+if [[ -d "${HOME}/.cache/qmd/models" ]]; then
+    mkdir -p "${qmd_cache_dir}/models"
+    for model in "${HOME}/.cache/qmd/models"/*.gguf; do
+        [[ -e "${model}" ]] || continue
+        target="${qmd_cache_dir}/models/$(basename "${model}")"
+        if [[ ! -f "${target}" ]]; then
+            cp "${model}" "${target}"
+        fi
+    done
+fi
+
+export QMD_CONFIG_DIR="${config_dir}"
+export XDG_CACHE_HOME="${cache_home}"
+
+trim() {
+    local value="$1"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    printf '%s' "${value}"
+}
+
+resolve_symlink() {
+    local source="$1"
+    local source_dir target
+
+    while [[ -L "${source}" ]]; do
+        source_dir="$(cd -P -- "$(dirname -- "${source}")" && pwd)"
+        target="$(readlink "${source}")"
+        case "${target}" in
+            /*) source="${target}" ;;
+            *) source="${source_dir}/${target}" ;;
+        esac
+    done
+
+    printf '%s\n' "${source}"
+}
+
+find_qmd_package_root() {
+    local package_root qmd_path resolved package_cache
+
+    if [[ -n "${QMD_PACKAGE_ROOT:-}" ]]; then
+        package_root="$(cd -- "${QMD_PACKAGE_ROOT}" && pwd)"
+        if [[ -f "${package_root}/dist/cli/qmd.js" ]]; then
+            printf '%s\n' "${package_root}"
+            return 0
+        fi
+        printf 'qmd-vault-helper: QMD_PACKAGE_ROOT does not contain dist/cli/qmd.js: %s\n' "${package_root}" >&2
+        return 1
+    fi
+
+    if qmd_path="$(command -v "${qmd_binary}" 2>/dev/null)"; then
+        resolved="$(resolve_symlink "${qmd_path}")"
+        package_root="$(cd -P -- "$(dirname -- "${resolved}")/.." && pwd)"
+        if [[ -f "${package_root}/dist/cli/qmd.js" ]]; then
+            printf '%s\n' "${package_root}"
+            return 0
+        fi
+    fi
+
+    package_cache="${qmd_cache_dir}/bun-package"
+    package_root="${package_cache}/node_modules/${qmd_package}"
+    if [[ ! -f "${package_root}/dist/cli/qmd.js" ]]; then
+        mkdir -p "${package_cache}"
+        (
+            cd "${package_cache}"
+            bun add "${qmd_package}" >/dev/null
+        )
+    fi
+
+    if [[ -f "${package_root}/dist/cli/qmd.js" ]]; then
+        printf '%s\n' "${package_root}"
+        return 0
+    fi
+
+    printf 'qmd-vault-helper: unable to locate %s package root for bun compilation.\n' "${qmd_package}" >&2
+    return 1
+}
+
+package_version() {
+    sed -nE 's/^.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*$/\1/p' "$1/package.json" | head -n 1
+}
+
+ensure_bun_compiled_qmd() {
+    local package_root version compiled_dir compiled stamp tmp
+
+    package_root="$(find_qmd_package_root)"
+    version="$(package_version "${package_root}")"
+    version="${version:-unknown}"
+    compiled_dir="${qmd_cache_dir}/bin"
+    compiled="${compiled_dir}/qmd-${version}"
+    stamp="${compiled}.source"
+    smoke_stamp="${compiled}.smoke-ok"
+
+    if [[ -x "${compiled}" && -f "${stamp}" && -f "${smoke_stamp}" ]] && grep -Fxq "${package_root}" "${stamp}"; then
+        printf '%s\n' "${compiled}"
+        return 0
+    fi
+
+    mkdir -p "${compiled_dir}"
+    tmp="${compiled}.tmp.$$"
+    (
+        cd "${package_root}"
+        bun build --compile \
+            --external '@node-llama-cpp/*' \
+            --external 'sqlite-vec-*' \
+            dist/cli/qmd.js \
+            --outfile "${tmp}" >&2
+    )
+    mv "${tmp}" "${compiled}"
+    chmod +x "${compiled}"
+
+    if ! "${compiled}" --help >/dev/null 2>&1; then
+        printf 'qmd-vault-helper: bun-compiled QMD executable failed its smoke test: %s\n' "${compiled}" >&2
+        rm -f "${compiled}" "${stamp}" "${smoke_stamp}"
+        return 1
+    fi
+
+    printf '%s\n' "${package_root}" >"${stamp}"
+    printf 'ok\n' >"${smoke_stamp}"
+    printf '%s\n' "${compiled}"
+}
+
+IFS=',' read -r -a methods <<<"${invoke_methods}"
+errors=()
+
+for raw_method in "${methods[@]}"; do
+    method="$(trim "${raw_method}")"
+    [[ -z "${method}" ]] && continue
+
+    case "${method}" in
+        local)
+            if qmd_path="$(command -v "${qmd_binary}" 2>/dev/null)"; then
+                exec "${qmd_path}" "${qmd_args[@]}"
+            fi
+            errors+=("local: ${qmd_binary} not found on PATH")
+            ;;
+        bun-bundle)
+            if ! command -v bun >/dev/null 2>&1; then
+                errors+=("bun-bundle: bun not found on PATH")
+                continue
+            fi
+            if compiled_qmd="$(ensure_bun_compiled_qmd)"; then
+                exec "${compiled_qmd}" "${qmd_args[@]}"
+            fi
+            errors+=("bun-bundle: failed to compile and smoke-test ${qmd_package}")
+            ;;
+        bunx)
+            if command -v bunx >/dev/null 2>&1; then
+                exec bunx "${qmd_package}" "${qmd_args[@]}"
+            fi
+            if command -v bun >/dev/null 2>&1; then
+                exec bun x "${qmd_package}" "${qmd_args[@]}"
+            fi
+            errors+=("bunx: neither bunx nor bun found on PATH")
+            ;;
+        nix)
+            if command -v nix >/dev/null 2>&1; then
+                exec nix run nixpkgs#bun -- x "${qmd_package}" "${qmd_args[@]}"
+            fi
+            errors+=("nix: nix not found on PATH")
+            ;;
+        *)
+            printf 'qmd-vault-helper: unsupported QMD_INVOKE_METHOD entry: %s\n' "${method}" >&2
+            printf 'Supported entries: local, bun-bundle, bunx, nix. Use one entry or a comma-separated preference list.\n' >&2
+            exit 64
+            ;;
+    esac
+done
+
+printf 'qmd-vault-helper: no QMD invocation method succeeded.\n' >&2
+for error in "${errors[@]}"; do
+    printf '  - %s\n' "${error}" >&2
+done
+exit 69
