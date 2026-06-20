@@ -1,387 +1,538 @@
-#!/usr/bin/env bash
-# qmd-vault-helper keeps QMD's mutable state scoped to an explicit vault root,
-# then invokes QMD using a selectable local, bun-bundle, bunx, or nix strategy.
-set -euo pipefail
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "click>=8.1,<9",
+#   "rich>=13.7,<14",
+# ]
+# ///
+"""Run QMD with mutable state scoped to an explicit vault root."""
 
-qmd_package="${QMD_PACKAGE:-@tobilu/qmd}"
-qmd_binary="${QMD_LOCAL_BINARY:-qmd}"
-vault_root_input="${QMD_VAULT_ROOT:-}"
-invoke_methods="${QMD_INVOKE_METHOD:-local,bun-bundle,bunx,nix}"
-state_dir_input="${QMD_STATE_DIR:-}"
-config_dir_input="${QMD_CONFIG_DIR:-}"
-cache_home_input="${QMD_CACHE_HOME:-${XDG_CACHE_HOME:-}}"
+from __future__ import annotations
 
-show_helper_help() {
-    cat <<'EOF'
-qmd-vault-helper - run QMD against an explicit markdown vault
+import json
+import os
+import shutil
+import subprocess
+import tempfile
+from dataclasses import dataclass, replace
+from pathlib import Path
 
-Usage:
-  qmd-vault-helper <helper-args> -- <qmd-command> [qmd-options]
-  qmd-vault-helper --help
-  qmd-vault-helper --qmd-help
+import click
+from rich.console import Console
+from rich.table import Table
 
-Examples:
-  qmd-vault-helper --vault-root /Users/me/Notes -- query "decision about backups" --json -n 10
-  qmd-vault-helper --vault-root /Users/me/Notes -- search "Ada Lovelace" --json -n 10
-  qmd-vault-helper --vault-root /Users/me/Notes -- update
-  qmd-vault-helper --vault-root /Users/me/Notes --invoke-method bun-bundle -- vsearch "graph notes"
+DEFAULT_PACKAGE = "@tobilu/qmd"
+DEFAULT_LOCAL_BINARY = "qmd"
+DEFAULT_INVOKE_METHOD = "local,bunx,nix"
 
-Helper arguments:
-  --vault-root PATH       Vault root to search. Required unless QMD_VAULT_ROOT is set.
-  --invoke-method LIST    Invocation method or ordered preference list.
-                          Default: local,bun-bundle,bunx,nix
-                          Supported entries: local, bun-bundle, bunx, nix
-  --local-binary NAME     Binary used by the local method. Default: qmd
-  --package NAME          Package used by bun-bundle/bunx/nix methods.
-                          Default: @tobilu/qmd
-  --package-root PATH     Existing package root for bun-bundle compilation.
-  --state-dir PATH        Directory for helper-managed QMD config/cache state.
-                          Default: <vault-root>/.qmd-agent
-  --config-dir PATH       QMD config directory. Default: <state-dir>/config
-  --cache-home PATH       Cache root exported as XDG_CACHE_HOME.
-                          Default: <state-dir>/cache, unless XDG_CACHE_HOME is set
-  --qmd-help              Print the underlying QMD CLI help.
+HELP_CONTEXT = {"help_option_names": ["-h", "--help"]}
+console = Console()
 
-Environment equivalents:
-  QMD_VAULT_ROOT, QMD_INVOKE_METHOD, QMD_LOCAL_BINARY, QMD_PACKAGE,
-  QMD_PACKAGE_ROOT, QMD_STATE_DIR, QMD_CONFIG_DIR, QMD_CACHE_HOME
-
-Invocation methods:
-  local               Execute qmd from PATH. Fastest and preferred when installed.
-  bun-bundle          Compile a cache-local QMD executable with Bun on first use,
-                      smoke-test it, then reuse it on later runs.
-  bunx                Run QMD through bunx, or "bun x" when bunx is absent.
-  nix                 Run QMD through: nix run nixpkgs#bun -- x @tobilu/qmd
-
-Notes for agents:
-  - This helper is standalone inside the Search_QMD skill.
-  - Do not assume a vault-local .agents path.
-  - Always provide the vault root explicitly with --vault-root or QMD_VAULT_ROOT.
-  - If QMD storage fails, fix this helper or rerun it with the needed permissions;
-    do not silently bypass QMD with grep/find/direct reads.
-  - Use --qmd-help to print the underlying QMD CLI help.
-EOF
-}
-
-qmd_args=()
-
-if [[ $# -eq 0 ]]; then
-    show_helper_help
-    exit 0
-fi
-
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -h|--help|help)
-            show_helper_help
-            exit 0
-            ;;
-        --qmd-help)
-            shift
-            qmd_args=(--help "$@")
-            break
-            ;;
-        --)
-            shift
-            qmd_args=("$@")
-            break
-            ;;
-        --vault-root)
-            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --vault-root requires a value.\n' >&2; exit 64; }
-            vault_root_input="$2"
-            shift 2
-            ;;
-        --vault-root=*)
-            vault_root_input="${1#*=}"
-            shift
-            ;;
-        --invoke-method)
-            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --invoke-method requires a value.\n' >&2; exit 64; }
-            invoke_methods="$2"
-            shift 2
-            ;;
-        --invoke-method=*)
-            invoke_methods="${1#*=}"
-            shift
-            ;;
-        --local-binary)
-            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --local-binary requires a value.\n' >&2; exit 64; }
-            qmd_binary="$2"
-            shift 2
-            ;;
-        --local-binary=*)
-            qmd_binary="${1#*=}"
-            shift
-            ;;
-        --package)
-            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --package requires a value.\n' >&2; exit 64; }
-            qmd_package="$2"
-            shift 2
-            ;;
-        --package=*)
-            qmd_package="${1#*=}"
-            shift
-            ;;
-        --package-root)
-            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --package-root requires a value.\n' >&2; exit 64; }
-            QMD_PACKAGE_ROOT="$2"
-            shift 2
-            ;;
-        --package-root=*)
-            QMD_PACKAGE_ROOT="${1#*=}"
-            shift
-            ;;
-        --state-dir)
-            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --state-dir requires a value.\n' >&2; exit 64; }
-            state_dir_input="$2"
-            shift 2
-            ;;
-        --state-dir=*)
-            state_dir_input="${1#*=}"
-            shift
-            ;;
-        --config-dir)
-            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --config-dir requires a value.\n' >&2; exit 64; }
-            config_dir_input="$2"
-            shift 2
-            ;;
-        --config-dir=*)
-            config_dir_input="${1#*=}"
-            shift
-            ;;
-        --cache-home)
-            [[ $# -ge 2 ]] || { printf 'qmd-vault-helper: --cache-home requires a value.\n' >&2; exit 64; }
-            cache_home_input="$2"
-            shift 2
-            ;;
-        --cache-home=*)
-            cache_home_input="${1#*=}"
-            shift
-            ;;
-        *)
-            printf 'qmd-vault-helper: unexpected helper argument before --: %s\n' "$1" >&2
-            printf 'Use: qmd-vault-helper <helper-args> -- <qmd-command> [qmd-options]\n' >&2
-            exit 64
-            ;;
-    esac
-done
-
-if [[ ${#qmd_args[@]} -eq 0 ]]; then
-    printf 'qmd-vault-helper: missing QMD command after --.\n' >&2
-    printf 'Use --help for helper usage or --qmd-help for QMD CLI help.\n' >&2
-    exit 64
-fi
-
-if [[ -z "${vault_root_input}" ]]; then
-    printf 'qmd-vault-helper: QMD_VAULT_ROOT is required and must point at the vault root.\n' >&2
-    exit 64
-fi
-
-if [[ ! -d "${vault_root_input}" ]]; then
-    printf 'qmd-vault-helper: vault root is not a directory: %s\n' "${vault_root_input}" >&2
-    exit 64
-fi
-
-vault_root="$(cd -- "${vault_root_input}" && pwd)"
-state_dir="${state_dir_input:-"${vault_root}/.qmd-agent"}"
-config_dir="${config_dir_input:-"${state_dir}/config"}"
-cache_home="${cache_home_input:-"${state_dir}/cache"}"
-qmd_cache_dir="${cache_home}/qmd"
-
-mkdir -p "${config_dir}" "${qmd_cache_dir}"
-
-# Agent sandboxes and CI jobs may not be allowed to write ~/.config or ~/.cache.
-# Keep QMD's mutable state under the target vault by default.
-if [[ ! -f "${config_dir}/index.yml" ]]; then
-    if [[ -f "${HOME}/.config/qmd/index.yml" ]] && grep -Fq "path: ${vault_root}" "${HOME}/.config/qmd/index.yml"; then
-        cp "${HOME}/.config/qmd/index.yml" "${config_dir}/index.yml"
-    else
-        cat >"${config_dir}/index.yml" <<EOF
-collections:
-  vault:
-    path: ${vault_root}
-    pattern: "**/*.md"
-    context:
-      "": "Personal knowledge base: research notes, career, daily journals, web clippings"
-EOF
-    fi
-fi
-
-if [[ ! -f "${qmd_cache_dir}/index.sqlite" && -f "${HOME}/.cache/qmd/index.sqlite" ]]; then
-    cp "${HOME}/.cache/qmd/index.sqlite" "${qmd_cache_dir}/index.sqlite"
-fi
-
-if [[ -d "${HOME}/.cache/qmd/models" ]]; then
-    mkdir -p "${qmd_cache_dir}/models"
-    for model in "${HOME}/.cache/qmd/models"/*.gguf; do
-        [[ -e "${model}" ]] || continue
-        target="${qmd_cache_dir}/models/$(basename "${model}")"
-        if [[ ! -f "${target}" ]]; then
-            cp "${model}" "${target}"
-        fi
-    done
-fi
-
-export QMD_CONFIG_DIR="${config_dir}"
-export XDG_CACHE_HOME="${cache_home}"
-
-trim() {
-    local value="$1"
-    value="${value#"${value%%[![:space:]]*}"}"
-    value="${value%"${value##*[![:space:]]}"}"
-    printf '%s' "${value}"
-}
-
-resolve_symlink() {
-    local source="$1"
-    local source_dir target
-
-    while [[ -L "${source}" ]]; do
-        source_dir="$(cd -P -- "$(dirname -- "${source}")" && pwd)"
-        target="$(readlink "${source}")"
-        case "${target}" in
-            /*) source="${target}" ;;
-            *) source="${source_dir}/${target}" ;;
-        esac
-    done
-
-    printf '%s\n' "${source}"
-}
-
-find_qmd_package_root() {
-    local package_root qmd_path resolved package_cache
-
-    if [[ -n "${QMD_PACKAGE_ROOT:-}" ]]; then
-        package_root="$(cd -- "${QMD_PACKAGE_ROOT}" && pwd)"
-        if [[ -f "${package_root}/dist/cli/qmd.js" ]]; then
-            printf '%s\n' "${package_root}"
-            return 0
-        fi
-        printf 'qmd-vault-helper: QMD_PACKAGE_ROOT does not contain dist/cli/qmd.js: %s\n' "${package_root}" >&2
-        return 1
-    fi
-
-    if qmd_path="$(command -v "${qmd_binary}" 2>/dev/null)"; then
-        resolved="$(resolve_symlink "${qmd_path}")"
-        package_root="$(cd -P -- "$(dirname -- "${resolved}")/.." && pwd)"
-        if [[ -f "${package_root}/dist/cli/qmd.js" ]]; then
-            printf '%s\n' "${package_root}"
-            return 0
-        fi
-    fi
-
-    package_cache="${qmd_cache_dir}/bun-package"
-    package_root="${package_cache}/node_modules/${qmd_package}"
-    if [[ ! -f "${package_root}/dist/cli/qmd.js" ]]; then
-        mkdir -p "${package_cache}"
-        (
-            cd "${package_cache}"
-            bun add "${qmd_package}" >/dev/null
-        )
-    fi
-
-    if [[ -f "${package_root}/dist/cli/qmd.js" ]]; then
-        printf '%s\n' "${package_root}"
-        return 0
-    fi
-
-    printf 'qmd-vault-helper: unable to locate %s package root for bun compilation.\n' "${qmd_package}" >&2
-    return 1
-}
-
-package_version() {
-    sed -nE 's/^.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*$/\1/p' "$1/package.json" | head -n 1
-}
-
-ensure_bun_compiled_qmd() {
-    local package_root version compiled_dir compiled stamp tmp
-
-    package_root="$(find_qmd_package_root)"
-    version="$(package_version "${package_root}")"
-    version="${version:-unknown}"
-    compiled_dir="${qmd_cache_dir}/bin"
-    compiled="${compiled_dir}/qmd-${version}"
-    stamp="${compiled}.source"
-    smoke_stamp="${compiled}.smoke-ok"
-
-    if [[ -x "${compiled}" && -f "${stamp}" && -f "${smoke_stamp}" ]] && grep -Fxq "${package_root}" "${stamp}"; then
-        printf '%s\n' "${compiled}"
-        return 0
-    fi
-
-    mkdir -p "${compiled_dir}"
-    tmp="${compiled}.tmp.$$"
+HELPER_OPTIONS = [
     (
-        cd "${package_root}"
-        bun build --compile \
-            --external '@node-llama-cpp/*' \
-            --external 'sqlite-vec-*' \
-            dist/cli/qmd.js \
-            --outfile "${tmp}" >&2
+        "vault_root",
+        ("--vault-root",),
+        "QMD_VAULT_ROOT",
+        None,
+        "Vault root to search. Required unless QMD_VAULT_ROOT is set.",
+    ),
+    (
+        "invoke_method",
+        ("--invoke-method",),
+        "QMD_INVOKE_METHOD",
+        DEFAULT_INVOKE_METHOD,
+        "Method or comma-separated method list: local, bunx, nix, bun-bundle.",
+    ),
+    (
+        "local_binary",
+        ("--local-binary",),
+        "QMD_LOCAL_BINARY",
+        DEFAULT_LOCAL_BINARY,
+        "Binary used by the local invocation method.",
+    ),
+    (
+        "package",
+        ("--package",),
+        "QMD_PACKAGE",
+        DEFAULT_PACKAGE,
+        "Package used by bunx, nix, and bun-bundle methods.",
+    ),
+    (
+        "package_root",
+        ("--package-root",),
+        "QMD_PACKAGE_ROOT",
+        None,
+        "Existing package root for bun-bundle compilation.",
+    ),
+    (
+        "state_dir",
+        ("--state-dir",),
+        "QMD_STATE_DIR",
+        None,
+        "Directory for helper-managed QMD config/cache state.",
+    ),
+    (
+        "config_dir",
+        ("--config-dir",),
+        "QMD_CONFIG_DIR",
+        None,
+        "QMD config directory. Default: <state-dir>/config.",
+    ),
+    (
+        "cache_home",
+        ("--cache-home",),
+        "QMD_CACHE_HOME",
+        None,
+        "Cache root exported as XDG_CACHE_HOME.",
+    ),
+]
+
+
+@dataclass
+class HelperConfig:
+    vault_root: str | None
+    invoke_method: str
+    local_binary: str
+    package: str
+    package_root: str | None
+    state_dir: str | None
+    config_dir: str | None
+    cache_home: str | None
+
+    def with_overrides(self, **values: str | None) -> "HelperConfig":
+        updates = {key: value for key, value in values.items() if value is not None}
+        return replace(self, **updates)
+
+
+@dataclass(frozen=True)
+class RuntimePaths:
+    vault_root: Path
+    state_dir: Path
+    config_dir: Path
+    cache_home: Path
+    qmd_cache_dir: Path
+
+
+def add_helper_options(include_env: bool):
+    def decorator(command):
+        for _name, flags, envvar, default, help_text in reversed(HELPER_OPTIONS):
+            kwargs: dict[str, object] = {"help": help_text}
+            if include_env:
+                kwargs["envvar"] = envvar
+                kwargs["default"] = default
+                kwargs["show_default"] = default is not None
+            command = click.option(*flags, **kwargs)(command)
+        return command
+
+    return decorator
+
+
+@click.group(
+    context_settings=HELP_CONTEXT,
+    no_args_is_help=True,
+    help=(
+        "Run QMD against an explicit markdown vault.\n\n"
+        "Use 'init' to prepare vault-scoped QMD state, then 'exec' to run QMD. "
+        "Default invocation methods are local,bunx,nix; bun-bundle is explicit opt-in."
+    ),
+)
+@add_helper_options(include_env=True)
+@click.pass_context
+def cli(
+    ctx: click.Context,
+    vault_root: str | None,
+    invoke_method: str,
+    local_binary: str,
+    package: str,
+    package_root: str | None,
+    state_dir: str | None,
+    config_dir: str | None,
+    cache_home: str | None,
+) -> None:
+    ctx.obj = HelperConfig(
+        vault_root=vault_root,
+        invoke_method=invoke_method,
+        local_binary=local_binary,
+        package=package,
+        package_root=package_root,
+        state_dir=state_dir,
+        config_dir=config_dir,
+        cache_home=cache_home or os.environ.get("XDG_CACHE_HOME"),
     )
-    mv "${tmp}" "${compiled}"
-    chmod +x "${compiled}"
 
-    if ! "${compiled}" --help >/dev/null 2>&1; then
-        printf 'qmd-vault-helper: bun-compiled QMD executable failed its smoke test: %s\n' "${compiled}" >&2
-        rm -f "${compiled}" "${stamp}" "${smoke_stamp}"
-        return 1
-    fi
 
-    printf '%s\n' "${package_root}" >"${stamp}"
-    printf 'ok\n' >"${smoke_stamp}"
-    printf '%s\n' "${compiled}"
-}
+@cli.command(help="Create or refresh helper-managed QMD config/cache state.")
+@add_helper_options(include_env=False)
+@click.pass_obj
+def init(
+    config: HelperConfig,
+    vault_root: str | None,
+    invoke_method: str | None,
+    local_binary: str | None,
+    package: str | None,
+    package_root: str | None,
+    state_dir: str | None,
+    config_dir: str | None,
+    cache_home: str | None,
+) -> None:
+    config = config.with_overrides(
+        vault_root=vault_root,
+        invoke_method=invoke_method,
+        local_binary=local_binary,
+        package=package,
+        package_root=package_root,
+        state_dir=state_dir,
+        config_dir=config_dir,
+        cache_home=cache_home,
+    )
+    paths = initialize_state(config)
+    print_init_summary(config, paths)
 
-IFS=',' read -r -a methods <<<"${invoke_methods}"
-errors=()
 
-for raw_method in "${methods[@]}"; do
-    method="$(trim "${raw_method}")"
-    [[ -z "${method}" ]] && continue
+@cli.command(
+    name="exec",
+    add_help_option=False,
+    context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+    help="Initialize helper-managed state, then run QMD with the remaining args.",
+)
+@click.argument("qmd_args", nargs=-1, type=click.UNPROCESSED)
+@click.pass_obj
+def exec_qmd(config: HelperConfig, qmd_args: tuple[str, ...]) -> None:
+    if not qmd_args:
+        raise click.UsageError("exec requires QMD arguments.")
+    paths = initialize_state(config)
+    invoke_qmd(config, paths, list(qmd_args))
 
-    case "${method}" in
-        local)
-            if qmd_path="$(command -v "${qmd_binary}" 2>/dev/null)"; then
-                exec "${qmd_path}" "${qmd_args[@]}"
-            fi
-            errors+=("local: ${qmd_binary} not found on PATH")
-            ;;
-        bun-bundle)
-            if ! command -v bun >/dev/null 2>&1; then
-                errors+=("bun-bundle: bun not found on PATH")
-                continue
-            fi
-            if compiled_qmd="$(ensure_bun_compiled_qmd)"; then
-                exec "${compiled_qmd}" "${qmd_args[@]}"
-            fi
-            errors+=("bun-bundle: failed to compile and smoke-test ${qmd_package}")
-            ;;
-        bunx)
-            if command -v bunx >/dev/null 2>&1; then
-                exec bunx "${qmd_package}" "${qmd_args[@]}"
-            fi
-            if command -v bun >/dev/null 2>&1; then
-                exec bun x "${qmd_package}" "${qmd_args[@]}"
-            fi
-            errors+=("bunx: neither bunx nor bun found on PATH")
-            ;;
-        nix)
-            if command -v nix >/dev/null 2>&1; then
-                exec nix run nixpkgs#bun -- x "${qmd_package}" "${qmd_args[@]}"
-            fi
-            errors+=("nix: nix not found on PATH")
-            ;;
-        *)
-            printf 'qmd-vault-helper: unsupported QMD_INVOKE_METHOD entry: %s\n' "${method}" >&2
-            printf 'Supported entries: local, bun-bundle, bunx, nix. Use one entry or a comma-separated preference list.\n' >&2
-            exit 64
-            ;;
-    esac
-done
 
-printf 'qmd-vault-helper: no QMD invocation method succeeded.\n' >&2
-for error in "${errors[@]}"; do
-    printf '  - %s\n' "${error}" >&2
-done
-exit 69
+def resolve_paths(config: HelperConfig) -> RuntimePaths:
+    if not config.vault_root:
+        raise click.UsageError("vault root is required; pass --vault-root or QMD_VAULT_ROOT.")
+
+    vault_root = Path(config.vault_root).expanduser()
+    if not vault_root.is_dir():
+        raise click.UsageError(f"vault root is not a directory: {vault_root}")
+    vault_root = vault_root.resolve()
+
+    state_dir = Path(config.state_dir).expanduser() if config.state_dir else vault_root / ".qmd-agent"
+    config_dir = Path(config.config_dir).expanduser() if config.config_dir else state_dir / "config"
+    cache_home = Path(config.cache_home).expanduser() if config.cache_home else state_dir / "cache"
+
+    return RuntimePaths(
+        vault_root=vault_root,
+        state_dir=state_dir,
+        config_dir=config_dir,
+        cache_home=cache_home,
+        qmd_cache_dir=cache_home / "qmd",
+    )
+
+
+def initialize_state(config: HelperConfig) -> RuntimePaths:
+    paths = resolve_paths(config)
+    paths.config_dir.mkdir(parents=True, exist_ok=True)
+    paths.qmd_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    config_file = paths.config_dir / "index.yml"
+    home_config = Path.home() / ".config" / "qmd" / "index.yml"
+    home_config_matches = False
+
+    if home_config.exists():
+        text = home_config.read_text(encoding="utf-8", errors="ignore")
+        home_config_matches = f"path: {paths.vault_root}" in text
+
+    if not config_file.exists():
+        if home_config_matches:
+            shutil.copy2(home_config, config_file)
+        else:
+            write_default_index(config_file, paths.vault_root)
+
+    cache_index = paths.qmd_cache_dir / "index.sqlite"
+    home_cache_index = Path.home() / ".cache" / "qmd" / "index.sqlite"
+    if home_config_matches and not cache_index.exists() and home_cache_index.exists():
+        shutil.copy2(home_cache_index, cache_index)
+
+    copy_cached_models(paths)
+    return paths
+
+
+def print_init_summary(config: HelperConfig, paths: RuntimePaths) -> None:
+    table = Table(show_header=False, box=None, padding=(0, 2))
+    table.add_column("setting", style="bold cyan", no_wrap=True)
+    table.add_column("value", overflow="fold")
+    table.add_row("vault_root", str(paths.vault_root))
+    table.add_row("state_dir", str(paths.state_dir))
+    table.add_row("qmd_config_dir", str(paths.config_dir))
+    table.add_row("xdg_cache_home", str(paths.cache_home))
+    table.add_row("invoke_method", ",".join(split_methods(config.invoke_method)))
+
+    console.print("[bold green]qmd-vault-helper initialized[/]")
+    console.print(table)
+
+
+def write_default_index(config_file: Path, vault_root: Path) -> None:
+    config_file.write_text(
+        "\n".join(
+            [
+                "collections:",
+                "  vault:",
+                f"    path: {vault_root}",
+                '    pattern: "**/*.md"',
+                "    context:",
+                '      "": "Personal knowledge base: research notes, career, daily journals, web clippings"',
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def copy_cached_models(paths: RuntimePaths) -> None:
+    home_models = Path.home() / ".cache" / "qmd" / "models"
+    if not home_models.is_dir():
+        return
+
+    model_dir = paths.qmd_cache_dir / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    for model in home_models.glob("*.gguf"):
+        target = model_dir / model.name
+        if not target.exists():
+            shutil.copy2(model, target)
+
+
+def qmd_env(paths: RuntimePaths) -> dict[str, str]:
+    env = os.environ.copy()
+    env["QMD_CONFIG_DIR"] = str(paths.config_dir)
+    env["XDG_CACHE_HOME"] = str(paths.cache_home)
+    return env
+
+
+def package_root_from_local_binary(binary: str) -> Path | None:
+    binary_path = shutil.which(binary)
+    if not binary_path:
+        return None
+
+    package_root = Path(binary_path).resolve().parent.parent
+    if (package_root / "dist" / "cli" / "qmd.js").is_file():
+        return package_root
+    return None
+
+
+def resolve_configured_package_root(config: HelperConfig) -> Path | None:
+    if config.package_root:
+        package_root = Path(config.package_root).expanduser().resolve()
+        if (package_root / "dist" / "cli" / "qmd.js").is_file():
+            return package_root
+        raise click.ClickException(
+            f"QMD package root does not contain dist/cli/qmd.js: {package_root}"
+        )
+    return None
+
+
+def cached_package_bundle(config: HelperConfig, paths: RuntimePaths) -> Path | None:
+    pointer = bundle_pointer_file(config, paths)
+    if not pointer.is_file():
+        return None
+    target = Path(pointer.read_text(encoding="utf-8").strip())
+    if compiled_bundle_ok(target, f"package:{config.package}"):
+        return target
+    return None
+
+
+def bundle_pointer_file(config: HelperConfig, paths: RuntimePaths) -> Path:
+    return paths.qmd_cache_dir / "bin" / f"{safe_package_name(config.package)}.current"
+
+
+def safe_package_name(package: str) -> str:
+    return "".join(char if char.isalnum() else "-" for char in package).strip("-") or "qmd"
+
+
+def compiled_bundle_ok(compiled: Path, stamp_label: str) -> bool:
+    stamp = Path(f"{compiled}.source")
+    smoke_stamp = Path(f"{compiled}.smoke-ok")
+    return (
+        compiled.is_file()
+        and os.access(compiled, os.X_OK)
+        and stamp.is_file()
+        and smoke_stamp.is_file()
+        and stamp.read_text(encoding="utf-8").strip() == stamp_label
+    )
+
+
+def find_package_root_in_source(source_dir: Path, package: str) -> Path:
+    package_root = source_dir / "node_modules" / Path(package)
+    if (package_root / "dist" / "cli" / "qmd.js").is_file():
+        return package_root
+    raise click.ClickException(f"unable to locate {package} after temporary install.")
+
+
+def install_package_to_temp_source(config: HelperConfig, paths: RuntimePaths) -> tuple[tempfile.TemporaryDirectory[str], Path]:
+    bun = shutil.which("bun")
+    if not bun:
+        raise click.ClickException("bun is required to install QMD for bun-bundle.")
+
+    source_parent = paths.qmd_cache_dir / "bundle-source"
+    source_parent.mkdir(parents=True, exist_ok=True)
+    temp_source = tempfile.TemporaryDirectory(prefix="qmd-source-", dir=source_parent)
+    source_dir = Path(temp_source.name)
+    subprocess.run(
+        [bun, "add", config.package],
+        cwd=source_dir,
+        stdout=subprocess.DEVNULL,
+        check=True,
+    )
+    return temp_source, find_package_root_in_source(source_dir, config.package)
+
+
+def source_package_root(config: HelperConfig, paths: RuntimePaths) -> tuple[Path, str] | None:
+    package_root = resolve_configured_package_root(config)
+    if package_root:
+        return package_root, str(package_root)
+
+    package_root = package_root_from_local_binary(config.local_binary)
+    if package_root:
+        return package_root, str(package_root)
+
+    return None
+
+
+def package_version(package_root: Path) -> str:
+    try:
+        metadata = json.loads((package_root / "package.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return "unknown"
+    version = metadata.get("version")
+    return version if isinstance(version, str) and version else "unknown"
+
+
+def compile_bun_bundle(
+    package_root: Path,
+    compiled: Path,
+    stamp_label: str,
+    env: dict[str, str],
+) -> Path:
+    stamp = Path(f"{compiled}.source")
+    smoke_stamp = Path(f"{compiled}.smoke-ok")
+
+    if compiled_bundle_ok(compiled, stamp_label):
+        return compiled
+
+    bun = shutil.which("bun")
+    if not bun:
+        raise click.ClickException("bun not found on PATH.")
+
+    compiled.parent.mkdir(parents=True, exist_ok=True)
+    tmp = compiled.with_name(f"{compiled.name}.tmp.{os.getpid()}")
+    try:
+        subprocess.run(
+            [
+                bun,
+                "build",
+                "--compile",
+                "--external",
+                "@node-llama-cpp/*",
+                "--external",
+                "sqlite-vec-*",
+                "dist/cli/qmd.js",
+                "--outfile",
+                str(tmp),
+            ],
+            cwd=package_root,
+            stdout=subprocess.DEVNULL,
+            check=True,
+        )
+        tmp.replace(compiled)
+        compiled.chmod(0o755)
+        smoke = subprocess.run(
+            [str(compiled), "--help"],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if smoke.returncode != 0:
+            raise click.ClickException(
+                f"bun-bundled QMD executable failed smoke test: {compiled}"
+            )
+        stamp.write_text(f"{stamp_label}\n", encoding="utf-8")
+        smoke_stamp.write_text("ok\n", encoding="utf-8")
+        return compiled
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def ensure_bun_bundle(config: HelperConfig, paths: RuntimePaths, env: dict[str, str]) -> Path:
+    compiled_dir = paths.qmd_cache_dir / "bin"
+    compiled_dir.mkdir(parents=True, exist_ok=True)
+
+    source = source_package_root(config, paths)
+    if source:
+        package_root, stamp_label = source
+        compiled = compiled_dir / f"qmd-{safe_package_name(config.package)}-{package_version(package_root)}"
+        return compile_bun_bundle(package_root, compiled, stamp_label, env)
+
+    cached = cached_package_bundle(config, paths)
+    if cached:
+        return cached
+
+    temp_source, package_root = install_package_to_temp_source(config, paths)
+    with temp_source:
+        version = package_version(package_root)
+        compiled = compiled_dir / f"qmd-{safe_package_name(config.package)}-{version}"
+        compiled = compile_bun_bundle(package_root, compiled, f"package:{config.package}", env)
+        bundle_pointer_file(config, paths).write_text(f"{compiled}\n", encoding="utf-8")
+        return compiled
+
+
+def exec_program(argv: list[str], env: dict[str, str]) -> None:
+    os.execvpe(argv[0], argv, env)
+
+
+def invoke_qmd(config: HelperConfig, paths: RuntimePaths, qmd_args: list[str]) -> None:
+    env = qmd_env(paths)
+    errors: list[str] = []
+
+    for method in split_methods(config.invoke_method):
+        if method == "local":
+            binary = shutil.which(config.local_binary)
+            if binary:
+                exec_program([binary, *qmd_args], env)
+            errors.append(f"local: {config.local_binary} not found on PATH")
+        elif method == "bunx":
+            bunx = shutil.which("bunx")
+            if bunx:
+                exec_program([bunx, config.package, *qmd_args], env)
+            bun = shutil.which("bun")
+            if bun:
+                exec_program([bun, "x", config.package, *qmd_args], env)
+            errors.append("bunx: neither bunx nor bun found on PATH")
+        elif method == "nix":
+            nix = shutil.which("nix")
+            if nix:
+                exec_program([nix, "run", "nixpkgs#bun", "--", "x", config.package, *qmd_args], env)
+            errors.append("nix: nix not found on PATH")
+        elif method == "bun-bundle":
+            try:
+                exec_program([str(ensure_bun_bundle(config, paths, env)), *qmd_args], env)
+            except (OSError, subprocess.CalledProcessError, click.ClickException) as error:
+                errors.append(f"bun-bundle: {error}")
+        else:
+            raise click.UsageError(
+                f"unsupported invocation method {method!r}; "
+                "supported methods are local, bunx, nix, bun-bundle."
+            )
+
+    raise click.ClickException(
+        "no QMD invocation method succeeded:\n"
+        + "\n".join(f"  - {error}" for error in errors)
+    )
+
+
+def split_methods(value: str) -> list[str]:
+    methods = [method.strip() for method in value.split(",") if method.strip()]
+    if not methods:
+        raise click.UsageError("--invoke-method must include at least one method.")
+    return methods
+
+
+if __name__ == "__main__":
+    cli()

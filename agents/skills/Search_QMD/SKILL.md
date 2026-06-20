@@ -28,59 +28,60 @@ agents/skills/Search_QMD/scripts/qmd-vault-helper --help
 ```
 
 ```bash
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- query "..."
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault init
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec query "..."
 ```
 
 From inside the Search_QMD skill folder:
 
 ```bash
-scripts/qmd-vault-helper --vault-root /path/to/vault -- query "..."
+scripts/qmd-vault-helper --vault-root /path/to/vault exec query "..."
 ```
 
-`QMD_INVOKE_METHOD` is optional. Set it to one method or a comma-separated ordered list. The default is `local,bun-bundle,bunx,nix`.
+`QMD_INVOKE_METHOD` is optional. Set it to one method or a comma-separated ordered list. The default is `local,bunx,nix`; use `bun-bundle` only when you explicitly want to test a cached Bun-compiled executable.
 
 | Method | Behavior |
 |--------|----------|
 | `local` | Execute `qmd` from `PATH`. Override the binary name with `QMD_LOCAL_BINARY`. |
-| `bun-bundle` | On first use, compile the QMD package with `bun build --compile` into the helper's `XDG_CACHE_HOME` and reuse the packed executable on later runs. |
 | `bunx` | Run QMD through `bunx`, or `bun x` when `bunx` is absent. |
 | `nix` | Execute QMD through `nix run nixpkgs#bun -- x @tobilu/qmd`. |
+| `bun-bundle` | Compile the QMD package with `bun build --compile` into the helper cache and reuse the packed executable on later runs. If no `--package-root` is given, the helper installs the package into a cache-owned temporary source directory, compiles from that source, then keeps only the executable. |
 
 Examples:
 
 ```bash
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method local -- query "..."
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method bun-bundle -- query "..."
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method bunx -- query "..."
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method local,bun-bundle,bunx,nix -- query "..."
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method local exec query "..."
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method bunx exec query "..."
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method bun-bundle exec query "..."
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method local,bunx,nix exec query "..."
 ```
 
 ## Commands
 
 ### Search (pick one per query)
-- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- query "..." --json -n 10` — Best quality. Hybrid BM25 + vector + LLM reranking. Use for complex or conceptual queries.
-- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- search "..." --json -n 10` — Fast BM25 keyword. Use for exact terms, names, dates.
-- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- vsearch "..." --json -n 5` — Semantic only. Use for exploratory queries where you don't know the exact words.
+- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec query "..." --json -n 10` — Best quality. Hybrid BM25 + vector + LLM reranking. Use for complex or conceptual queries.
+- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec search "..." --json -n 10` — Fast BM25 keyword. Use for exact terms, names, dates.
+- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec vsearch "..." --json -n 5` — Semantic only. Use for exploratory queries where you don't know the exact words.
 
 ### Retrieve
-- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- get "path/to/file.md"` — Full document by path.
-- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- get "#docid"` — Full document by ID (from search results).
-- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- multi-get "Pages/*.md" --json -l 40` — Batch retrieve by glob pattern.
+- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec get "path/to/file.md"` — Full document by path.
+- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec get "#docid"` — Full document by ID (from search results).
+- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec multi-get "Pages/*.md" --json -l 40` — Batch retrieve by glob pattern.
 
 ### Index Management
-- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- update` — Re-index after file changes (fast, ~1–2s incremental). Run when lookup needs a fresh index; do not run it automatically at every session start.
-- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- embed` — Regenerate vector embeddings. Run after bulk note creation.
+- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec update` — Re-index after file changes (fast, ~1–2s incremental). Run when lookup needs a fresh index; do not run it automatically at every session start.
+- `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec embed` — Regenerate vector embeddings. Run after bulk note creation.
 
 ## When to Search
 
 | Situation | Command |
 |-----------|---------|
-| User asks about a past decision | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- query "decision about <topic>"` |
-| User mentions a person by name | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- search "<name>"` |
-| Before creating a new note | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- vsearch "<topic>"` — check for existing content first |
-| After creating a note | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- vsearch "<note title>"` — find notes that should link to it |
-| User asks about a topic in the vault | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- query "<topic>"` |
-| Loading context on a company | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- search "<company name>"` |
+| User asks about a past decision | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec query "decision about <topic>"` |
+| User mentions a person by name | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec search "<name>"` |
+| Before creating a new note | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec vsearch "<topic>"` — check for existing content first |
+| After creating a note | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec vsearch "<note title>"` — find notes that should link to it |
+| User asks about a topic in the vault | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec query "<topic>"` |
+| Loading context on a company | `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec search "<company name>"` |
 
 ## Vault Collections
 
@@ -92,17 +93,18 @@ This vault is registered as a single collection:
 
 ## After Bulk Changes
 
-Run `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- update && agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- embed` to keep the index fresh after bulk note changes. Do not run maintenance at every session start unless the task needs a fresh local lookup.
+Run `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec update && agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec embed` to keep the index fresh after bulk note changes. Do not run maintenance at every session start unless the task needs a fresh local lookup.
 
 ## Setup (first time only)
 
 ```bash
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- collection add . --name vault --mask "**/*.md"
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- context add qmd://vault "Personal knowledge base: research notes, career, daily journals, web clippings"
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- update && agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault -- embed
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault init
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec collection add . --name vault --mask "**/*.md"
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec context add qmd://vault "Personal knowledge base: research notes, career, daily journals, web clippings"
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec update && agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec embed
 ```
 
 qmd is not yet in nixpkgs directly. The `nix` invocation method runs QMD through Bun from nixpkgs:
 ```bash
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method nix -- query "..."
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method nix exec query "..."
 ```
