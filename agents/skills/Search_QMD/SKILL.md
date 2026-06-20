@@ -7,7 +7,15 @@ description: "Search the vault using QMD semantic search. Use proactively for pa
 
 Use `$Search_QMD` in chat. The skill name is `Search_QMD`.
 
-Before reading vault files directly, search with QMD first. It returns relevant snippets without burning context on full file reads.
+Before reading vault files directly, identify the target vault root and search with QMD first. It returns relevant snippets without burning context on full file reads.
+
+## Vault Root Discipline
+
+Choose the vault root before constructing any QMD command. `--vault-root` must name the markdown vault being searched, not the current repo, the skill folder, or the agent's temporary workspace. Use the current working directory only when you have verified it is the target vault root.
+
+Setup commands must also use the target vault root explicitly. Do not use `collection add .` from another checkout; `.` means the shell's current directory, not the helper's `--vault-root`.
+
+If the user asks to search "the vault" and the target root is ambiguous, use repo/vault guidance to identify it before searching. If local context cannot disambiguate it, ask for the vault root instead of guessing.
 
 ## Sandbox Behavior
 
@@ -85,11 +93,19 @@ agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --
 
 ## Vault Collections
 
-This vault is registered as a single collection:
+For a fresh vault, `init` writes a default collection config under `<vault>/.qmd-agent/config/index.yml`:
 
 - **Collection:** `vault`
 - **Mask:** `**/*.md`
 - **URI:** `qmd://vault`
+
+The generated collection path is the absolute `--vault-root`. Normally, first-time setup does not need a separate `collection add` or `context add`.
+
+If you intentionally customize collection registration, use an absolute target path:
+
+```bash
+agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec collection add /path/to/vault --name vault --mask "**/*.md"
+```
 
 ## After Bulk Changes
 
@@ -99,8 +115,6 @@ Run `agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vau
 
 ```bash
 agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault init
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec collection add . --name vault --mask "**/*.md"
-agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec context add qmd://vault "Personal knowledge base: research notes, career, daily journals, web clippings"
 agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec update && agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault exec embed
 ```
 
@@ -108,3 +122,7 @@ qmd is not yet in nixpkgs directly. The `nix` invocation method runs QMD through
 ```bash
 agents/skills/Search_QMD/scripts/qmd-vault-helper --vault-root /path/to/vault --invoke-method nix exec query "..."
 ```
+
+## Tests
+
+When changing this skill, read [tests/README.md](tests/README.md). Run the relevant scenarios with fresh subagents that have empty context windows.
