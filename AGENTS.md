@@ -5,11 +5,12 @@ This repo curates reusable skills and plugins for coding agents.
 ## Scope
 
 - `agents/skills/` contains shared, runtime-agnostic skills.
-- Runtime-specific directories use `agents-<company>-<agent>/`.
-- `agents-openai-codex/` contains Codex-specific guidance, plugin collections, and runtime material.
-- `agents-openai-codex/collection/` contains the Codex marketplace manifest and plugin sources.
-- `agents-anthropic-claude/` contains Claude-specific guidance, plugins, and skills.
-- `agents-google-antigravity/` contains Google Antigravity guidance and plugin scaffolding.
+
+- Runtime-specific directories use `agents-<company>-<agent>/`:
+  - `agents-openai-codex/` contains Codex-specific guidance, plugin collections, and runtime material.
+  - `agents-anthropic-claude/` contains Claude-specific guidance, plugins, and skills.
+  - `agents-google-antigravity/` contains Google Antigravity guidance and plugin scaffolding.
+
 - Future agent runtimes should get their own top-level `agents-<company>-<agent>/` folder.
 
 ## Working Rules
